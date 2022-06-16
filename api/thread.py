@@ -275,6 +275,15 @@ class LocalThread:
             return str(self.message)
 
     def __init__(self, storeDir: str, newThreadId: int = None):
+        """
+        __init__ 初始化本地贴子存档目录
+
+        :param storeDir: 贴子存档目录
+        :type storeDir: str
+        :param newThreadId: 新存档的贴子 ID，默认为 None
+        :type newThreadId: int, optional
+        :raises self.LocalThreadNoOverwriteException: 若原存档目录有效且传入了 `newThreadId`，则抛出此异常
+        """
         self.storeDir = os.path.abspath(storeDir)
         self.assetDir = os.path.join(self.storeDir, "assets")
         self.portraitDir = os.path.join(self.storeDir, "portraits")
@@ -329,6 +338,17 @@ class LocalThread:
             raise self.LocalThreadInvalidException() from e
 
     def updateStoreOptions(self, _overwriteOptions: dict):
+        """
+        updateStoreOptions 更新贴子的存档选项
+
+        调用该方法的同时会检测 `assets` 及 `portraits` 目录是否存在，减少报错的风险。
+
+        >>> updateStoreOptions({"withAsset": True})
+        # 若 assets 目录不存在则自动创建
+
+        :param _overwriteOptions: 要覆盖的存档选项
+        :type _overwriteOptions: dict
+        """
         overwriteOptions = deepcopy(_overwriteOptions)
         overwriteOptions.pop("__VERSION__", None)
         for k in [("withAsset", "assets"), ("withPortrait", "portraits")]:
