@@ -1,4 +1,4 @@
-__debug.*
+__debug*
 .vscode
 stored_posts/
 html_viewer/
