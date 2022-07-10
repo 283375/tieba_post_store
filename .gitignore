@@ -1,5 +1,4 @@
-_debug.py
-_debug.json
+__debug.*
 .vscode
 stored_posts/
 html_viewer/
