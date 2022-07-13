@@ -1,6 +1,7 @@
 import time
 import random
 import requests
+import logging
 from hashlib import md5
 
 from utils.generateIMEI import generateRandomIMEI
@@ -9,6 +10,7 @@ from utils.generateCUID import generateFinalCUID
 # Most methods are ported from [TiebaLite](https://github.com/HuanCheng65/TiebaLite).
 # Great thanks to [HuanCheng65](https://github.com/HuanCheng65) and other contributors to the project.
 
+logger = logging.getLogger("main")
 
 def getDefaultParams(type: str):
     initTimestamp = time.time() * 1000
@@ -18,7 +20,7 @@ def getDefaultParams(type: str):
         "ONEPLUS A5000",
         "OPPO R7s",
         "HWI-AL00",
-        "Meizu M6 Note",
+        "M6 Note",
         "mblu S6",
         "SVTELE-NH75",
         "Sevive Telecom|Nihility 75",
@@ -106,12 +108,7 @@ def getDefaultParams(type: str):
 def generateSign(params: dict):
     params.pop("sign", None)
     sortedParams = sorted(params.items())
-
-    sortedParamsStr = ""
-    for k, v in sortedParams:
-        sortedParamsStr += "{}={}".format(k, v)
-    sortedParamsStr += "tiebaclient!!!"
-
+    sortedParamsStr = "".join(f"{k}={v}" for k, v in sortedParams) + "tiebaclient!!!"
     return md5(sortedParamsStr.encode("utf-8")).hexdigest()
 
 
@@ -121,6 +118,7 @@ def miniApi(suffix, _params, _headers={}):
     reqParams = {**DEFAULT_PARAMS["params"], **_params}
     reqParams["sign"] = generateSign(reqParams)
     reqHeaders = {**DEFAULT_PARAMS["headers"], **_headers}
+    logger.debug(f"request {REQUEST_ADDRESS} with params {repr(reqParams)} and headers {repr(reqHeaders)}")
     return requests.get(REQUEST_ADDRESS, params=reqParams, headers=reqHeaders)
 
 
@@ -130,10 +128,12 @@ def officialApi(suffix, _params, _headers={}):
     reqParams = {**DEFAULT_PARAMS["params"], **_params}
     reqParams["sign"] = generateSign(reqParams)
     reqHeaders = {**DEFAULT_PARAMS["headers"], **_headers}
+    logger.debug(f"request {REQUEST_ADDRESS} with params {repr(reqParams)} and headers {repr(reqHeaders)}")
     return requests.get(REQUEST_ADDRESS, params=reqParams, headers=reqHeaders)
 
 
 def getThread(threadId, page, lzOnly: bool = False):
+    logger.debug(f"getThread {threadId}")
     reqParams = {
         "kz": str(threadId),
         "pn": str(page),
@@ -155,6 +155,7 @@ def getThread(threadId, page, lzOnly: bool = False):
 
 
 def getSubPost(threadId, postId, subpostId, page=1, rn=20):
+    logger.debug(f"getSubPost {threadId}->{postId}")
     reqParams = {
         "kz": str(threadId),
         "pn": str(page),
@@ -167,6 +168,7 @@ def getSubPost(threadId, postId, subpostId, page=1, rn=20):
 
 
 def getUserInfo(userId):
+    logger.debug(f"getUserInfo {userId}")
     reqParams = {"uid": str(userId), "need_post_count": "1"}
     req = miniApi("/c/u/user/profile", reqParams)
     return req.json()
