@@ -13,7 +13,7 @@ logger = logging.getLogger("main")
 
 
 class RemoteThread:
-    class ThreadInvalidException(Exception):
+    class ThreadInvalidError(Exception):
         def __init__(self, response: dict):
             self.code = response.get("error_code")
             self.message = response.get("error_msg")
@@ -21,7 +21,7 @@ class RemoteThread:
         def __str__(self):
             return f'[{self.__class__.__name__}] 错误 {self.code or "(无代码)"}：{self.message or "无消息"}'
 
-    class DataNotRequestedException(Exception):
+    class DataNotRequestedError(Exception):
         def __init__(self):
             self.message = f"{self.__class__.__name__} 尚未请求数据，请先调用 requestData()。"
 
@@ -62,7 +62,7 @@ class RemoteThread:
     def requestData(self, lzOnly):
         preRequest = getThread(self.threadId, page=1, lzOnly=lzOnly)
         if preRequest.get("page") is None:
-            raise self.ThreadInvalidException(preRequest)
+            raise self.ThreadInvalidError(preRequest)
 
         self.dataRequestTime = int(time.time() * 1000)
         self.totalPage = int(preRequest["page"]["total_page"])
@@ -248,14 +248,14 @@ class RemoteThread:
 
 
 class LocalThread:
-    class LocalThreadNoOverwriteException(Exception):
+    class LocalThreadNoOverwriteError(Exception):
         def __init__(self):
             self.message = "不允许使用新 ID 覆盖一个有效的存档。"
 
         def __str__(self) -> str:
             return self.message
 
-    class LocalThreadInvalidException(Exception):
+    class LocalThreadInvalidError(Exception):
         def __init__(self):
             self.message = "存档目录损坏或无效。"
 
@@ -301,7 +301,7 @@ class LocalThread:
         self._isValid()
         if self.isValid:
             if newThreadId:
-                raise self.LocalThreadNoOverwriteException()
+                raise self.LocalThreadNoOverwriteError()
             self._fillLocalData()
 
     def _isValid(self):
@@ -352,7 +352,7 @@ class LocalThread:
             if self.storeOptions["withPortrait"]:
                 self.portraits = loadLocalJson("portraits.json")
         except FileNotFoundError as e:
-            raise self.LocalThreadInvalidException() from e
+            raise self.LocalThreadInvalidError() from e
 
     def _fillRemoteData(self):
         self.remoteThread = RemoteThread(

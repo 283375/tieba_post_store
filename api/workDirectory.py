@@ -15,7 +15,7 @@ def getSavedPosts(rootPath: str) -> list:
             t = LocalThread(directory)
             if t.isValid:
                 savedPosts.append(t)
-        except (LocalThread.LocalThreadInvalidException, json.JSONDecodeError):
+        except (LocalThread.LocalThreadInvalidError, json.JSONDecodeError):
             logger.warning(f"无效存档目录：{directory}")
     logger.info(f"Found {len(savedPosts)} posts in {rootPath}")
     return savedPosts
