@@ -1,29 +1,24 @@
 import sys
-import time
 import logging
 from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
-    QListWidget,
-    QComboBox,
     QTabWidget,
     QWidget,
     QHBoxLayout,
     QVBoxLayout,
 )
-from PySide6.QtCore import QThread
 
-from ui import WorkDirectory, ThreadList, ThreadInfo, LogWindow
+from ui import __vars, LogWindow, ThreadInfo, ThreadList, WorkDirectory
 
 logger = logging.getLogger("main")
 logger.setLevel(logging.DEBUG)
 
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
+    app = __vars.app
 
     tab = QTabWidget()
-
     workDirectoryWidget = WorkDirectory.ChangeWorkDirectory()
     threadListWidget = ThreadList.ThreadListWidget()
     threadInfoWidget = ThreadInfo.ThreadInfoWidget()
@@ -60,10 +55,10 @@ if __name__ == "__main__":
     centralWidget.layout = QVBoxLayout(centralWidget)
     centralWidget.layout.addWidget(tab)
 
-    window = QMainWindow()
-    window.setCentralWidget(centralWidget)
-    window.setWindowTitle("贴子存档")
-    window.resize(800, 600)
-    window.show()
-
+    mainWindow = QMainWindow()
+    mainWindow.setCentralWidget(centralWidget)
+    mainWindow.setWindowTitle("tieba_post_store")
+    mainWindow.resize(800, 600)
+    mainWindow.setStatusBar(__vars.statusBar)
+    mainWindow.show()
     sys.exit(app.exec())
