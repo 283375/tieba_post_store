@@ -20,7 +20,7 @@ class WorkDirectory(QObject):
     def setWorkDirectory(self, dir: str):
         self.workDirectory = dir
         self.SIGNAL_workDirectoryChanged.emit(dir)
-        logger.info("Work directory changed to {}".format(dir))
+        logger.info(f"Work directory changed to {dir}")
 
 
 class ChangeWorkDirectory(QWidget):

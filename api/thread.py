@@ -305,14 +305,18 @@ class LocalThread:
             self._fillLocalData()
 
     def _isValid(self):
+        def __test(filename):
+            with open(filename, "r", encoding="utf-8") as f:
+                json.load(f)
+
         try:
-            _open = partial(open, mode="r", encoding="utf-8")
-            _open(os.path.join(self.storeDir, "threadInfo.json"))
-            _open(os.path.join(self.storeDir, "posts.json"))
-            _open(os.path.join(self.storeDir, "users.json"))
+            __test(os.path.join(self.storeDir, "threadInfo.json"))
+            __test(os.path.join(self.storeDir, "posts.json"))
+            __test(os.path.join(self.storeDir, "users.json"))
             self.isValid = True
-        except FileNotFoundError:
+        except (FileNotFoundError, json.JSONDecodeError) as e:
             self.isValid = False
+            raise self.LocalThreadInvalidError() from e
 
     def updateStoreOptions(self, _overwriteOptions: dict):
         """

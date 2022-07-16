@@ -4,7 +4,7 @@ from utils.generateIMEI import generateRandomIMEI
 from utils.generateCUID import generateFinalCUID
 
 
-def getDefaultParams(type: str = "mini"):
+def getDefaultParams(apiType: str = "mini"):
     initTimestamp = time.time() * 1000
     imei = generateRandomIMEI()
     _cuid = generateFinalCUID(imei)
@@ -20,10 +20,10 @@ def getDefaultParams(type: str = "mini"):
     ]
     model = random.choice(models)
 
-    ret =  {
+    ret = {
         "params": {
             "BDUSS": "Y2SUFkb3lKdVk3blJKZmtNZ3liZ2xjUW9BaUY4UWdyMTEyWHEycDZ6cHl0NE5oSVFBQUFBJCQAAAAAAAAAAAEAAAAEihObYmlsaWJpbGkyODMzNzUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHIqXGFyKlxhal",
-            "_client_id": "wappc_{}_{}".format(initTimestamp, random.randint(0, 1000)),
+            "_client_id": f"wappc_{initTimestamp}_{random.randint(1, 1000)}",
             "_client_type": "2",
             "_client_version": "7.2.0.0",
             "_os_version": str(random.randint(22, 25)),
@@ -43,14 +43,7 @@ def getDefaultParams(type: str = "mini"):
         },
     }
 
-    if type == "new":
-        ret["headers"]["USER_AGENT"] = "bdtb for Android 8.2.2"
-        ret["headers"]["cuid"] = _cuid
-
-        ret["params"]["cuid"] = _cuid
-        ret["params"]["from"] = "baidu_appstore"
-        ret["params"]["_client_version"] = "8.2.2"
-    elif type == "mini":
+    if apiType == "mini":
         ret["headers"]["USER_AGENT"] = "bdtb for Android 7.2.0.0"
         ret["headers"]["cuid"] = _cuid
         ret["headers"]["cuid_galaxy2"] = _cuid
@@ -60,7 +53,14 @@ def getDefaultParams(type: str = "mini"):
         ret["params"]["from"] = "1021636m"
         ret["params"]["_client_version"] = "7.2.0.0"
         ret["params"]["subapp_type"] = "mini"
-    elif type == "official":
+    elif apiType == "new":
+        ret["headers"]["USER_AGENT"] = "bdtb for Android 8.2.2"
+        ret["headers"]["cuid"] = _cuid
+
+        ret["params"]["cuid"] = _cuid
+        ret["params"]["from"] = "baidu_appstore"
+        ret["params"]["_client_version"] = "8.2.2"
+    elif apiType == "official":
         ret["headers"]["USER_AGENT"] = "bdtb for Android 9.9.8.32"
         ret["headers"]["cuid"] = _cuid
         ret["headers"]["cuid_galaxy2"] = _cuid
