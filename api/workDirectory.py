@@ -7,15 +7,14 @@ from api.thread import LocalThread
 logger = logging.getLogger("main")
 
 
-def getSavedPosts(rootPath: str) -> list:
-    savedPosts = []
+def scanDirectory(rootPath: str) -> list:
+    logger.info(f"开始扫描 {rootPath}……")
     for directory in os.listdir(rootPath):
         directory = os.path.abspath(os.path.join(rootPath, directory))
         try:
             t = LocalThread(directory)
-            if t.isValid:
-                savedPosts.append(t)
-        except (LocalThread.LocalThreadInvalidError, json.JSONDecodeError):
-            logger.warning(f"无效存档目录：{directory}")
-    logger.info(f"Found {len(savedPosts)} posts in {rootPath}")
-    return savedPosts
+            logger.info(f"检测到存档目录 {directory}")
+        except LocalThread.LocalThreadInvalidError:
+            t = None
+        finally:
+            yield (directory, t)

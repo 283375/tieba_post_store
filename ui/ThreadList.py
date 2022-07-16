@@ -1,7 +1,14 @@
-from PySide6.QtWidgets import QListWidget, QListWidgetItem, QWidget, QLabel, QVBoxLayout
+from PySide6.QtWidgets import (
+    QListWidget,
+    QListWidgetItem,
+    QWidget,
+    QLabel,
+    QVBoxLayout,
+)
 from PySide6.QtCore import Signal, Slot
 
-from api.workDirectory import getSavedPosts
+from .__vars import statusBar
+from api.workDirectory import scanDirectory
 from api.thread import LocalThread
 
 
@@ -19,18 +26,25 @@ class ThreadListWidget(QListWidget):
 
     @Slot(str)
     def workDirectoryChanged(self, workDirectory):
-        threadList = getSavedPosts(workDirectory)
+        statusBar.showMessage(f"正在扫描 {workDirectory}")
+
+        savedThreads = [
+            t
+            for dir, t in scanDirectory(workDirectory)
+            if t is not None and type(t) == LocalThread
+        ]
+
+        statusBar.showMessage(
+            f"Found {len(savedThreads)} posts in {workDirectory}", 5000
+        )
+
         self.clear()
-        for thread in threadList:
-            text = """<b>{title}</b> (ID: {id})
-            <br>{authorDisplayName} (原名 {authorOrigName})
-            <br>存档于 {dir}""".format(
-                title=thread.threadInfo["title"],
-                id=thread.threadInfo["id"],
-                authorDisplayName=thread.threadInfo["author"]["displayName"],
-                authorOrigName=thread.threadInfo["author"]["origName"],
-                dir=thread.storeDir,
-            )
+        for thread in savedThreads:
+            text = f"""
+            <b>{thread.threadInfo["title"]}</b> (ID: {thread.threadInfo["id"]})
+            <br>{thread.threadInfo["author"]["displayName"]} (原名 {thread.threadInfo["author"]["origName"]})
+            <br>存档于 {thread.storeDir}"""
+
             label = QLabel(text)
             widget = QWidget()
             widget.layout = QVBoxLayout(widget)
@@ -43,5 +57,4 @@ class ThreadListWidget(QListWidget):
 
     @Slot(QListWidgetItem)
     def __itemChanged(self, item):
-        print("itemChanged")
         self.threadSelected.emit(item.localThread)
