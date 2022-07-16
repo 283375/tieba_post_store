@@ -1,4 +1,5 @@
 from PySide6.QtWidgets import (
+    QApplication,
     QListWidget,
     QListWidgetItem,
     QWidget,
@@ -27,6 +28,7 @@ class ThreadListWidget(QListWidget):
     @Slot(str)
     def workDirectoryChanged(self, workDirectory):
         statusBar.showMessage(f"正在扫描 {workDirectory}")
+        QApplication.instance().processEvents()
 
         savedThreads = [
             t
@@ -35,7 +37,7 @@ class ThreadListWidget(QListWidget):
         ]
 
         statusBar.showMessage(
-            f"Found {len(savedThreads)} posts in {workDirectory}", 5000
+            f"Found {len(savedThreads)} posts in {workDirectory}", 10000
         )
 
         self.clear()
