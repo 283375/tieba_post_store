@@ -316,7 +316,8 @@ class LocalThread:
             self.isValid = True
         except (FileNotFoundError, json.JSONDecodeError) as e:
             self.isValid = False
-            raise self.LocalThreadInvalidError() from e
+            if self.newThreadId is None:
+                raise self.LocalThreadInvalidError() from e
 
     def updateStoreOptions(self, _overwriteOptions: dict):
         """
