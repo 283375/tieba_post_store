@@ -10,7 +10,7 @@ from PySide6.QtCore import Signal, Slot
 
 from .__vars import statusBar
 from api.workDirectory import scanDirectory
-from api.thread import LocalThread
+from api.thread import LocalThread, getLocalThreadInfo
 
 
 class ThreadListWidget(QListWidget):
@@ -42,10 +42,11 @@ class ThreadListWidget(QListWidget):
 
         self.clear()
         for thread in savedThreads:
+            info = getLocalThreadInfo(thread)
             text = f"""
-            <b>{thread.threadInfo["title"]}</b> (ID: {thread.threadInfo["id"]})
-            <br>{thread.threadInfo["author"]["displayName"]} (原名 {thread.threadInfo["author"]["origName"]})
-            <br>存档于 {thread.storeDir}"""
+            <b>{info["title"]}</b> (ID: {info["threadId"]})
+            <br>{info["author"]["displayName"]}
+            <br>存档于 {info["storeDir"]}"""
 
             label = QLabel(text)
             widget = QWidget()

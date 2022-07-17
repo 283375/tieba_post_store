@@ -561,3 +561,32 @@ class LocalThread:
 
         self.portraits = list((oldPortraitsById | newPortraitsById).values())
         return downloadPortraits
+
+
+def getLocalThreadInfo(t: LocalThread):
+    ver = t.storeOptions["__VERSION__"]
+    info = {
+        "__VERSION__": ver,
+        "threadId": None,
+        "title": None,
+        "author": {
+            "id": None,
+            "displayName": None,
+            "origName": None,
+        },
+        "storeDir": None,
+        "createTime": None,
+        "storeTime": None,
+        "updateTime": None,
+    }
+    # if ver == 1: 胎死腹中的破烂版本，没人用得着的
+    if ver == 2:
+        info["threadId"] = t.threadInfo["id"]
+        info["title"] = t.threadInfo["title"]
+        info["author"] = t.threadInfo["author"]
+        info["storeDir"] = t.storeDir
+        info["createTime"] = int(t.threadInfo["createTime"]) * 1000
+        info["storeTime"] = t.updateInfo["storeTime"]
+        info["updateTime"] = t.updateInfo["updateTime"]
+    # elif ver == 3: 也许用得着，谁知道呢
+    return info

@@ -3,36 +3,7 @@ import time
 from PySide6.QtWidgets import QWidget, QFormLayout, QLabel
 from PySide6.QtCore import Slot
 
-from api.thread import LocalThread
-
-
-def getInfo(t: LocalThread) -> dict:
-    ver = t.storeOptions["__VERSION__"]
-    info = {
-        "__VERSION__": ver,
-        "threadId": None,
-        "title": None,
-        "author": {
-            "id": None,
-            "displayName": None,
-            "origName": None,
-        },
-        "storeDir": None,
-        "createTime": None,
-        "storeTime": None,
-        "updateTime": None,
-    }
-    # if ver == 1: 胎死腹中的破烂版本，没人用得着的
-    if ver == 2:
-        info["threadId"] = t.threadInfo["id"]
-        info["title"] = t.threadInfo["title"]
-        info["author"] = t.threadInfo["author"]
-        info["storeDir"] = t.storeDir
-        info["createTime"] = int(t.threadInfo["createTime"]) * 1000
-        info["storeTime"] = t.updateInfo["storeTime"]
-        info["updateTime"] = t.updateInfo["updateTime"]
-    # elif ver == 3: 也许用得着，谁知道呢
-    return info
+from api.thread import LocalThread, getLocalThreadInfo
 
 
 def formatTime(_timestamp: int, isMilliseconds: bool = True):
@@ -74,7 +45,7 @@ class ThreadInfoWidget(QWidget):
         def _setText(l: QLabel, content):
             l.setText(str(content))
 
-        info = getInfo(self.localThread)
+        info = getLocalThreadInfo(self.localThread)
         _setText(self.versionLabel, info["__VERSION__"])
         _setText(self.idLabel, info["threadId"])
         _setText(self.titleLabel, info["title"])
