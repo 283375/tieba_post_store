@@ -85,7 +85,7 @@ def getDefaultParams(type: str):
     elif type == "official":
         ret["headers"].update(
             {
-                "USER_AGENT": "bdtb for Android 9.9.8.32",
+                "USER_AGENT": "bdtb for Android 12.25.1.0",
                 "cuid": _cuid,
                 "cuid_galaxy2": _cuid,
                 "cuid_gid": "",
@@ -98,7 +98,7 @@ def getDefaultParams(type: str):
                 "cuid_galaxy2": _cuid,
                 "cuid_gid": "",
                 "from": "tieba",
-                "_client_version": "9.9.8.32",
+                "_client_version": "12.25.1.0",
             }
         )
 
