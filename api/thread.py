@@ -5,7 +5,7 @@ import requests
 import logging
 from copy import deepcopy
 from urllib.parse import urlparse
-from functools import partial, wraps
+from functools import wraps
 
 from api.tiebaApi import getThread, getSubPost
 
@@ -280,8 +280,8 @@ class LocalThread:
         self.storeOptions = {
             "__VERSION__": 2,
             "lzOnly": False,
-            "withAsset": False,
-            "withPortrait": False,
+            "assets": False,
+            "portraits": False,
         }
         self.updateInfo = {
             "storeTime": None,
@@ -297,14 +297,14 @@ class LocalThread:
         self.origData = None
         self.remoteThread = None
 
-        self.isValid = False
-        self._isValid()
-        if self.isValid:
+        self.__isValid = False
+        self.__checkValid()
+        if self.__isValid:
             if newThreadId:
                 raise self.LocalThreadNoOverwriteError()
             self._fillLocalData()
 
-    def _isValid(self):
+    def __checkValid(self):
         def __test(filename):
             with open(filename, "r", encoding="utf-8") as f:
                 json.load(f)
@@ -313,9 +313,9 @@ class LocalThread:
             __test(os.path.join(self.storeDir, "threadInfo.json"))
             __test(os.path.join(self.storeDir, "posts.json"))
             __test(os.path.join(self.storeDir, "users.json"))
-            self.isValid = True
+            self.__isValid = True
         except (FileNotFoundError, json.JSONDecodeError) as e:
-            self.isValid = False
+            self.__isValid = False
             if self.newThreadId is None:
                 raise self.LocalThreadInvalidError() from e
 
@@ -323,9 +323,9 @@ class LocalThread:
         """
         updateStoreOptions 更新贴子的存档选项
 
-        调用该方法的同时会检测 `assets` 及 `portraits` 目录是否存在，减少报错的风险。
+        调用该方法的同时会检测 `assets` 及 `portraits` 目录是否存在并自动创建，减少报错的风险。
 
-        >>> updateStoreOptions({"withAsset": True})
+        >>> updateStoreOptions({"assets": True})
         # 若 assets 目录不存在则自动创建
 
         :param _overwriteOptions: 要覆盖的存档选项
@@ -333,9 +333,9 @@ class LocalThread:
         """
         overwriteOptions = deepcopy(_overwriteOptions)
         overwriteOptions.pop("__VERSION__", None)
-        for k in [("withAsset", "assets"), ("withPortrait", "portraits")]:
-            if overwriteOptions.get(k[0], False):
-                os.makedirs(os.path.join(self.storeDir, k[1]), exist_ok=True)
+        for storeOpt, dirName in [("assets", "assets"), ("portraits", "portraits")]:
+            if overwriteOptions.get(storeOpt, False):
+                os.makedirs(os.path.join(self.storeDir, dirName), exist_ok=True)
         self.storeOptions = {**self.storeOptions, **overwriteOptions}
 
     def _fillLocalData(self):
@@ -352,9 +352,9 @@ class LocalThread:
             self.posts = loadLocalJson("posts.json")
             self.users = loadLocalJson("users.json")
 
-            if self.storeOptions["withAsset"]:
+            if self.storeOptions["assets"]:
                 self.assets = loadLocalJson("assets.json")
-            if self.storeOptions["withPortrait"]:
+            if self.storeOptions["portraits"]:
                 self.portraits = loadLocalJson("portraits.json")
         except FileNotFoundError as e:
             raise self.LocalThreadInvalidError() from e
@@ -363,7 +363,7 @@ class LocalThread:
         self.remoteThread = RemoteThread(
             self.newThreadId or self.threadInfo.get("id"), self.storeOptions["lzOnly"]
         )
-        return True
+        return self.remoteThread
 
     def _storeAsset(self, assets=None):
         for key in ["images", "audios", "videos"]:
@@ -378,7 +378,6 @@ class LocalThread:
                         logger.debug(f"正在保存资源 {asset['filename']}")
                         f.write(requests.get(asset["src"]).content)
                 yield asset
-        return assets
 
     def _storePortrait(self, portraits: list = None):
         for portrait in portraits:
@@ -397,7 +396,7 @@ class LocalThread:
         ) as f:
             json.dump(self.origData, f, ensure_ascii=False, indent=2)
 
-    def _storeDataToFile(self):
+    def _writeDataToFile(self):
         def _writeJson(filename, data):
             with open(
                 os.path.join(self.storeDir, filename), "w", encoding="utf-8"
@@ -414,70 +413,79 @@ class LocalThread:
         _writeJson("threadInfo.json", threadInfo)
         _writeJson("posts.json", self.posts)
         _writeJson("users.json", self.users)
-        if self.storeOptions["withAsset"]:
+        if self.storeOptions["assets"]:
             _writeJson("assets.json", self.assets)
-        if self.storeOptions["withPortrait"]:
+        if self.storeOptions["portraits"]:
             _writeJson("portraits.json", self.portraits)
 
-    def store(self):
+    def _store(self):
+        # yield(step, [progress, totalProgress], extraData)
         os.makedirs(self.storeDir, exist_ok=True)
 
-        logger.info(f"正准备存档贴子 {self.newThreadId or self.threadInfo.get('id')}……")
-        yield self._fillRemoteData()
-        if self.isValid:
-            # 原存档有效
-            logger.info("原存档有效，准备更新……")
+        _data = {
+            "update": {"posts": None, "assets": None, "portraits": None},
+            "download": {"assets": {}, "portraits": []},
+        }
+        yield (0, [1, 1], self._fillRemoteData())
 
-            # 写入更新时间，初始化更新日志
-            _updateLog = self.updateInfo["updateLog"][
-                self.remoteThread.dataRequestTime
-            ] = {"posts": None, "assets": None, "portraits": None}
-
-            postsUpdateLog = self._updatePosts(
-                self.posts, self.remoteThread.getFullPosts()
-            )
-            _updateLog["posts"] = postsUpdateLog
-            yield postsUpdateLog
-
-            if self.storeOptions["withAsset"]:
-                assetUpdateLog = self._updateAssets(
-                    self.remoteThread.getFullAssets(), self.assets
-                )
-                _updateLog["assets"] = assetUpdateLog
-                yield from self._storeAsset(assetUpdateLog)
-                yield assetUpdateLog
-            if self.storeOptions["withPortrait"]:
-                portraitUpdateLog = self._updatePortraits(
-                    self.remoteThread.getFullPortraits(), self.portraits
-                )
-                _updateLog["portraits"] = portraitUpdateLog
-                yield from self._storePortrait(portraitUpdateLog)
-                yield portraitUpdateLog
-
-            self.updateInfo["updateTime"] = self.remoteThread.dataRequestTime
-        else:
-            # 否则，创建新的存档
-            self.updateInfo["storeTime"] = self.remoteThread.dataRequestTime
-
-            self.posts = self.remoteThread.getFullPosts()
-            if self.storeOptions["withAsset"]:
-                self.assets = self.remoteThread.getFullAssets()
-                yield from self._storeAsset(self.assets)
-            if self.storeOptions["withPortrait"]:
-                self.portraits = self.remoteThread.getFullPortraits()
-                yield from self._storePortrait(self.portraits)
-
+        # Analyze & update data
         self.threadInfo = self.remoteThread.getThreadInfo()
         self.users = self.remoteThread.getFullUsersById()
-        self._storeDataToFile()
+        self.origData = self.remoteThread.getOrigData()
+        if self.__isValid:
+            _a = self._updateAssets() if self.storeOptions["assets"] else ...
+            _p = self._updatePortraits() if self.storeOptions["portraits"] else ...
+            _data["update"]["posts"] = self._updatePosts()
+            _data["update"]["assets"] = _data["download"]["assets"] = _a
+            _data["update"]["portraits"] = _data["download"]["portraits"] = _p
 
-        # 更新类自身数据
-        self._isValid()
+            updateTime = self.remoteThread.dataRequestTime
+            self.updateInfo["updateTime"] = updateTime
+            self.updateInfo["updateLog"][updateTime] = _data["update"]
+        else:
+            self.posts = self.remoteThread.getFullPosts()
+            if self.storeOptions["assets"]:
+                self.assets = self.remoteThread.getFullAssets()
+                _data["download"]["assets"] = self.assets
+            if self.storeOptions["portraits"]:
+                self.portraits = self.remoteThread.getFullPortraits()
+                _data["download"]["portraits"] = self.portraits
+            self.updateInfo["storeTime"] = self.remoteThread.dataRequestTime
+        yield (1, [1, 1], _data)
+
+        # Download data
+        #  Caculate total number
+        __len, __progress = 0, 1
+        for key in _data["download"]["assets"].keys():
+            if _list := _data["download"]["assets"].get(key):
+                __len += len(_list)
+        if _list := _data["download"]["portraits"]:
+            __len += len(_list)
+
+        #  Download & yield progress
+        if __len:
+            if _data["download"]["assets"]:
+                for _ in self._storeAsset(_data["download"]["assets"]):
+                    __progress += 1
+                    yield (2, [__progress, __len], _)
+            if _data["download"]["portraits"]:
+                for _ in self._storePortrait(_data["download"]["portraits"]):
+                    __progress += 1
+                    yield (2, [__progress, __len], _)
+        else:
+            yield (2, [1, 1], None)
+
+        # Writing data to files
+        self._writeDataToFile()
+        self.__checkValid()
         self._fillLocalData()
+        yield (3, [1, 1], None)
         logger.info("存档完成！")
 
-    def _updatePosts(self, oldPosts: list, newPosts: list) -> list:
+    def _updatePosts(self, _new: list = None, _old: list = None) -> list:
         # WARNING: NOT TESTED
+        newPosts = _new or self.remoteThread.getFullPosts()
+        oldPosts = _old or self.posts
         _updateLog = []
 
         oldFloors = {int(post["floor"]): post for post in oldPosts}
@@ -518,8 +526,11 @@ class LocalThread:
         self.posts = updatedPosts
         return _updateLog
 
-    def _updateAssets(self, newAssets, oldAssets: dict = None):
+    def _updateAssets(self, _new: dict = None, _old: dict = None) -> dict:
         # WARNING: NOT TESTED
+        newAssets = _new or self.remoteThread.getFullAssets() or {}
+        oldAssets = _old or self.assets or {}
+
         downloadAssets = {"images": [], "audios": [], "videos": []}
         combinedAssets = {"images": [], "audios": [], "videos": []}
         if oldAssets and oldAssets == newAssets:
@@ -549,7 +560,9 @@ class LocalThread:
         self.assets = combinedAssets
         return downloadAssets
 
-    def _updatePortraits(self, newPortraits: list, oldPortraits: list = None):
+    def _updatePortraits(self, _new: list = None, _old: list = None) -> list:
+        newPortraits = _new or self.remoteThread.getFullPortraits() or {}
+        oldPortraits = _old or self.portraits or {}
         # WARNING: NOT TESTED
         oldPortraitsById = {portrait["id"]: portrait for portrait in oldPortraits}
         newPortraitsById = {portrait["id"]: portrait for portrait in newPortraits}
