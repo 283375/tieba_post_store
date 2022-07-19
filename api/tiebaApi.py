@@ -112,7 +112,9 @@ def generateSign(params: dict):
     return md5(sortedParamsStr.encode("utf-8")).hexdigest()
 
 
-def miniApi(suffix, _params, _headers={}):
+def miniApi(suffix, _params, _headers = None):
+    if _headers is None:
+        _headers = {}
     REQUEST_ADDRESS = f"http://c.tieba.baidu.com{suffix}"
     DEFAULT_PARAMS = getDefaultParams("mini")
     reqParams = {**DEFAULT_PARAMS["params"], **_params}
@@ -122,7 +124,9 @@ def miniApi(suffix, _params, _headers={}):
     return requests.get(REQUEST_ADDRESS, params=reqParams, headers=reqHeaders)
 
 
-def officialApi(suffix, _params, _headers={}):
+def officialApi(suffix, _params, _headers = None):
+    if _headers is None:
+        _headers = {}
     REQUEST_ADDRESS = f"http://c.tieba.baidu.com{suffix}"
     DEFAULT_PARAMS = getDefaultParams("official")
     reqParams = {**DEFAULT_PARAMS["params"], **_params}
