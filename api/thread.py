@@ -133,12 +133,13 @@ class RemoteThread:
         return self.sortPost(fullList)
 
     def analyzeAsset(self, postContents):
-        assets = {"images": [], "videos": [], "audios": []}
+        assets = []
         for contentBlock in postContents:
             contentType = contentBlock["type"]
             if contentType == "3":  # image
-                assets["images"].append(
+                assets.append(
                     {
+                        "type": "image",
                         "src": contentBlock["origin_src"],
                         "id": contentBlock["pic_id"],
                         "size": contentBlock["size"],
@@ -153,8 +154,9 @@ class RemoteThread:
                     }
                 )
             elif contentType == "5":  # video
-                assets["videos"].append(
+                assets.append(
                     {
+                        "type": "video",
                         "src": contentBlock["link"],
                         "size": contentBlock["origin_size"],
                         "filename": os.path.basename(
@@ -163,39 +165,33 @@ class RemoteThread:
                     }
                 )
             elif contentType == "10":  # audio
-                assets["audios"].append(
+                assets.append(
                     {
+                        "type": "audio",
+                        "md5": contentBlock["voice_md5"],
                         "src": f'http://c.tieba.baidu.com/c/p/voice?voice_md5={contentBlock["voice_md5"]}&play_from=pb_voice_play',
                         "filename": f'{contentBlock["voice_md5"]}.mp3',
                     }
                 )
-
             """
             elif contentType == "20":  # [?] maybe memePic
-                # [?] all the code below is not tested
                 imageList.append(content)
             """
         return assets
 
     @isDataRequested
     def getAssets(self, page=1):
-        postList = self.getPosts(page)
-        assets = {"images": [], "audios": [], "videos": []}
-        for post in postList:
-            analyzedAssets = self.analyzeAsset(post["content"])
-            assets["images"] += analyzedAssets["images"]
-            assets["audios"] += analyzedAssets["audios"]
-            assets["videos"] += analyzedAssets["videos"]
+        posts = self.getPosts(page)
+        assets = []
+        for post in posts:
+            assets += self.analyzeAsset(post["content"])
         return assets
 
     @isDataRequested
     def getFullAssets(self):
-        fullAssets = {"images": [], "audios": [], "videos": []}
+        fullAssets = []
         for pageNum in self.totalPageRange:
-            analyzedAsset = self.getAssets(pageNum)
-            fullAssets["images"] += analyzedAsset["images"]
-            fullAssets["audios"] += analyzedAsset["audios"]
-            fullAssets["videos"] += analyzedAsset["videos"]
+            fullAssets += self.getAssets(pageNum)
         return fullAssets
 
     @isDataRequested
@@ -262,7 +258,7 @@ class LocalThread:
         def __str__(self) -> str:
             return self.message
 
-    def __init__(self, storeDir: str, newThreadId: int = None):
+    def __init__(self, storeDir: str, newThreadId: int = None, override: bool = False):
         """
         __init__ 初始化本地贴子存档目录
 
@@ -365,21 +361,17 @@ class LocalThread:
         )
         return self.remoteThread
 
-    def _storeAsset(self, assets=None):
-        for key in ["images", "audios", "videos"]:
-            if assets[key]:
-                storeAssetKeyPath = os.path.join(self.assetDir, key)
-                os.makedirs(storeAssetKeyPath, exist_ok=True)
+    def _storeAssets(self, assets=None):
+        for assetObj in assets:
+            assetSortedDir = os.path.join(self.assetDir, assetObj["type"])
+            os.makedirs(assetSortedDir, exist_ok=True)
 
-                for asset in assets[key]:
-                    with open(
-                        os.path.join(storeAssetKeyPath, asset["filename"]), "wb"
-                    ) as f:
-                        logger.debug(f"正在保存资源 {asset['filename']}")
-                        f.write(requests.get(asset["src"]).content)
-                yield asset
+            with open(os.path.join(assetSortedDir, assetObj["filename"]), "wb") as f:
+                logger.debug(f"正在保存资源 {assetObj['filename']}")
+                f.write(requests.get(assetObj["src"]).content)
+            yield assetObj
 
-    def _storePortrait(self, portraits: list = None):
+    def _storePortraits(self, portraits: list = None):
         for portrait in portraits:
             portraitFilename = os.path.join(self.portraitDir, f'{portrait["id"]}.jpg')
             logger.debug(f'正在保存头像 {portrait["portrait"]}(ID {portrait["id"]})……')
@@ -422,12 +414,14 @@ class LocalThread:
         # yield(step, [progress, totalProgress], extraData)
         os.makedirs(self.storeDir, exist_ok=True)
 
+        yield (0, [0, 1], None)
         _data = {
             "update": {"posts": None, "assets": None, "portraits": None},
-            "download": {"assets": {}, "portraits": []},
+            "download": {"assets": [], "portraits": []},
         }
         yield (0, [1, 1], self._fillRemoteData())
 
+        yield (1, [0, 1], None)
         # Analyze & update data
         self.threadInfo = self.remoteThread.getThreadInfo()
         self.users = self.remoteThread.getFullUsersById()
@@ -455,27 +449,25 @@ class LocalThread:
 
         # Download data
         #  Caculate total number
-        __len, __progress = 0, 1
-        for key in _data["download"]["assets"].keys():
-            if _list := _data["download"]["assets"].get(key):
-                __len += len(_list)
-        if _list := _data["download"]["portraits"]:
-            __len += len(_list)
+        __len = len(_data["download"]["assets"]) + len(_data["download"]["portraits"])
+        __progress = 0
 
+        yield (2, [0, __len or 1], None)
         #  Download & yield progress
         if __len:
             if _data["download"]["assets"]:
-                for _ in self._storeAsset(_data["download"]["assets"]):
+                for _ in self._storeAssets(_data["download"]["assets"]):
                     __progress += 1
                     yield (2, [__progress, __len], _)
             if _data["download"]["portraits"]:
-                for _ in self._storePortrait(_data["download"]["portraits"]):
+                for _ in self._storePortraits(_data["download"]["portraits"]):
                     __progress += 1
                     yield (2, [__progress, __len], _)
         else:
             yield (2, [1, 1], None)
 
         # Writing data to files
+        yield (3, [0, 1], None)
         self._writeDataToFile()
         self.__checkValid()
         self._fillLocalData()
@@ -484,8 +476,8 @@ class LocalThread:
 
     def _updatePosts(self, _new: list = None, _old: list = None) -> list:
         # WARNING: NOT TESTED
-        newPosts = _new or self.remoteThread.getFullPosts()
-        oldPosts = _old or self.posts
+        newPosts = _new or self.remoteThread.getFullPosts() or []
+        oldPosts = _old or self.posts or []
         _updateLog = []
 
         oldFloors = {int(post["floor"]): post for post in oldPosts}
@@ -521,43 +513,31 @@ class LocalThread:
                 floor = oldFloors[floorNum]
             else:
                 logger.info(f"{floorNum} 楼完全缺失……")
-            updatedPosts.append(floor)
+            if floor is not None:
+                updatedPosts.append(floor)
 
         self.posts = updatedPosts
         return _updateLog
 
-    def _updateAssets(self, _new: dict = None, _old: dict = None) -> dict:
+    def _updateAssets(self, _new: list = None, _old: list = None) -> list:
         # WARNING: NOT TESTED
-        newAssets = _new or self.remoteThread.getFullAssets() or {}
-        oldAssets = _old or self.assets or {}
+        newAssets = _new or self.remoteThread.getFullAssets() or []
+        oldAssets = _old or self.assets or []
 
-        downloadAssets = {"images": [], "audios": [], "videos": []}
-        combinedAssets = {"images": [], "audios": [], "videos": []}
-        if oldAssets and oldAssets == newAssets:
+        downloadAssets = []
+        if newAssets == oldAssets:
             logger.info("无需更新资源……")
-        elif oldAssets:
-            # 原先存在资源，分析资源差异
-            # 提取原资源列表中的所有 src
-            for key in ["images", "audios", "videos"]:
-                for oldAsset in oldAssets[key]:
-                    for newAsset in newAssets[key]:
-                        if oldAsset["src"] == newAsset["src"]:
-                            combinedAssets[key].append(newAsset)
-                            break
-                        else:
-                            downloadAssets[key].append(newAsset)
-                            combinedAssets[key].append(newAsset)
-                """    
-                oldSrcs = [asset["src"] for asset in oldAssets[key]]
-                [
-                    downloadAssets[key].append(asset)
-                    for asset in newAssets[key]
-                    if newAssets["key"] and asset["src"] not in oldSrcs
-                ]"""
         else:
-            downloadAssets = newAssets
+            combinedAssets = newAssets + oldAssets
+            duplicatedAssets = list(set(combinedAssets))
+            downloadAssets = [
+                assetObj
+                for assetObj in combinedAssets
+                if assetObj not in duplicatedAssets
+            ]
+            __sort_order = lambda x: {"image": 1, "video": 2, "audio": 3}[x["type"]]
+            self.assets = sorted(combinedAssets, key=__sort_order)
 
-        self.assets = combinedAssets
         return downloadAssets
 
     def _updatePortraits(self, _new: list = None, _old: list = None) -> list:
