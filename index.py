@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
 )
 
-from ui import __vars, LogWindow, ThreadInfo, ThreadList, WorkDirectory
+from ui import LogWindow, ThreadInfo, ThreadList, WorkDirectory, __vars
 
 logger = logging.getLogger("main")
 logger.setLevel(logging.DEBUG)
@@ -29,12 +29,26 @@ if __name__ == "__main__":
     )
     threadListWidget.threadSelected.connect(threadInfoWidget.updateLocalThread)
 
-    class ActuallyNotAFilter(logging.Filter):
-        def filter(self, record):
+    logStatusBar = __vars.logStatusBar
+    class LogForwardHandler(logging.Handler):
+        def __init__(self, level=logging.DEBUG):
+            super().__init__(level)
+            self.formatter = logging.Formatter(
+                "[%(asctime)s][%(levelname)s]: %(message)s",
+                "%m-%d %H:%M:%S",
+            )
+
+        def handle(self, record):
             logWindowWidget.addLogRecord(record)
+            if record.levelno >= logging.INFO:
+                logStatusBar.showMessage(self.format(record))
+                app.processEvents()
             return True
 
-    logger.addFilter(ActuallyNotAFilter())
+        def format(self, record) -> str:
+            return self.formatter.format(record)
+
+    logger.addHandler(LogForwardHandler())
 
     indexLowerWrapper = QWidget()
     indexLowerWrapper.layout = QHBoxLayout(indexLowerWrapper)
@@ -54,6 +68,7 @@ if __name__ == "__main__":
     centralWidget = QWidget()
     centralWidget.layout = QVBoxLayout(centralWidget)
     centralWidget.layout.addWidget(tab)
+    centralWidget.layout.addWidget(__vars.logStatusBar)
 
     mainWindow = QMainWindow()
     mainWindow.setCentralWidget(centralWidget)
