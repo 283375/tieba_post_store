@@ -1,9 +1,19 @@
 import time
 
-from PySide6.QtWidgets import QWidget, QFormLayout, QLabel
-from PySide6.QtCore import Slot
+from PySide6.QtWidgets import (
+    QWidget,
+    QLabel,
+    QSpacerItem,
+    QPushButton,
+    QProgressBar,
+    QFormLayout,
+    QVBoxLayout,
+    QSizePolicy,
+)
+from PySide6.QtCore import Qt, Slot
 
 from api.thread import LocalThread, getLocalThreadInfo
+from .StoreThread import StoreThread
 
 
 def formatTime(_timestamp: int, isMilliseconds: bool = True):
@@ -17,6 +27,8 @@ class ThreadInfoWidget(QWidget):
         super().__init__()
         self.localThread = None
 
+        self.infoFormWrapper = QWidget(self)
+        self.infoFormLayout = QFormLayout(self.infoFormWrapper)
         self.versionLabel = QLabel("")
         self.idLabel = QLabel("")
         self.titleLabel = QLabel("")
@@ -25,20 +37,28 @@ class ThreadInfoWidget(QWidget):
         self.createTimeLabel = QLabel("")
         self.storedTimeLabel = QLabel("")
         self.updateTimeLabel = QLabel("")
+        self.infoFormLayout.addRow("存档版本", self.versionLabel)
+        self.infoFormLayout.addRow("贴子 ID", self.idLabel)
+        self.infoFormLayout.addRow("标题", self.titleLabel)
+        self.infoFormLayout.addRow("楼主", self.authorLabel)
+        self.infoFormLayout.addRow("存档于", self.storeDirLabel)
+        self.infoFormLayout.addRow("贴子发布时间", self.createTimeLabel)
+        self.infoFormLayout.addRow("存档时间", self.storedTimeLabel)
+        self.infoFormLayout.addRow("最后更新时间", self.updateTimeLabel)
 
-        self.layout = QFormLayout(self)
-        self.layout.addRow("存档版本", self.versionLabel)
-        self.layout.addRow("贴子 ID", self.idLabel)
-        self.layout.addRow("标题", self.titleLabel)
-        self.layout.addRow("作者", self.authorLabel)
-        self.layout.addRow("存档位置", self.storeDirLabel)
-        self.layout.addRow("贴子发布时间", self.createTimeLabel)
-        self.layout.addRow("存档时间", self.storedTimeLabel)
-        self.layout.addRow("最后更新时间", self.updateTimeLabel)
+        self.vSpacer = QSpacerItem(1, 20, QSizePolicy.Minimum, QSizePolicy.Expanding)
+
+        self.storeThread = StoreThread()
+
+        self.layout = QVBoxLayout(self)
+        self.layout.addWidget(self.infoFormWrapper)
+        self.layout.addSpacerItem(self.vSpacer)
+        self.layout.addWidget(self.storeThread)
 
     @Slot(LocalThread)
     def updateLocalThread(self, t: LocalThread):
         self.localThread = t
+        self.storeThread.setLocalThread(t)
         self.updateLabels()
 
     def updateLabels(self):

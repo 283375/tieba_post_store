@@ -1,14 +1,13 @@
 from PySide6.QtWidgets import (
-    QApplication,
     QListWidget,
     QListWidgetItem,
     QWidget,
     QLabel,
     QVBoxLayout,
 )
-from PySide6.QtCore import Signal, Slot
+from PySide6.QtCore import Qt, Signal, Slot
 
-from .__vars import statusBar
+from ._vars import app, statusBar
 from api.workDirectory import scanDirectory
 from api.thread import LocalThread, getLocalThreadInfo
 
@@ -22,30 +21,29 @@ class ThreadListWidget(QListWidget):
         self.setSelectionRectVisible(True)
         self.setDragEnabled(False)
         self.setAcceptDrops(False)
+        self.lastDirectory = None
 
         self.itemDoubleClicked.connect(self.__itemChanged)
 
     @Slot(str)
     def workDirectoryChanged(self, workDirectory):
         statusBar.showMessage(f"正在扫描 {workDirectory}")
-        QApplication.instance().processEvents()
+        app.processEvents()
 
         savedThreads = [
-            t
-            for dir, t in scanDirectory(workDirectory)
-            if t is not None and type(t) == LocalThread
+            t for dir, t in scanDirectory(workDirectory) if type(t) == LocalThread
         ]
 
         statusBar.showMessage(
-            f"Found {len(savedThreads)} posts in {workDirectory}", 10000
+            f"在 {workDirectory} 中找到了 {len(savedThreads)} 个有效存档目录", 10000
         )
 
         self.clear()
-        for thread in savedThreads:
+        for i, thread in enumerate(savedThreads):
             info = getLocalThreadInfo(thread)
             text = f"""
             <b>{info["title"]}</b> (ID: {info["threadId"]})
-            <br>{info["author"]["displayName"]}
+            <br>楼主 {info["author"]["displayName"]}
             <br>存档于 {info["storeDir"]}"""
 
             label = QLabel(text)
@@ -53,11 +51,19 @@ class ThreadListWidget(QListWidget):
             widget.layout = QVBoxLayout(widget)
             widget.layout.addWidget(label)
             item = QListWidgetItem()
-            item.localThread = thread
+            item.setData(Qt.UserRole, thread)
+            if i == 0:
+                item.setSelected(True)
+                self.__itemChanged(item)
             self.addItem(item)
             item.setSizeHint(widget.sizeHint())
             self.setItemWidget(item, widget)
+        self.lastDirectory = workDirectory
+
+    @Slot()
+    def refreshDirectory(self):
+        self.workDirectoryChanged(self.lastDirectory)
 
     @Slot(QListWidgetItem)
-    def __itemChanged(self, item):
-        self.threadSelected.emit(item.localThread)
+    def __itemChanged(self, item: QListWidgetItem):
+        self.threadSelected.emit(item.data(Qt.UserRole))

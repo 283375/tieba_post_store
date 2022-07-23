@@ -1,5 +1,4 @@
 import os
-import json
 import logging
 
 from api.thread import LocalThread
@@ -7,8 +6,9 @@ from api.thread import LocalThread
 logger = logging.getLogger("main")
 
 
-def scanDirectory(rootPath: str) -> list:
-    logger.info(f"开始扫描 {rootPath}……")
+def scanDirectory(_rootPath: str) -> list:
+    rootPath = os.path.abspath(_rootPath)
+    logger.info(f"开始扫描 {rootPath}")
     for directory in os.listdir(rootPath):
         directory = os.path.abspath(os.path.join(rootPath, directory))
         try:

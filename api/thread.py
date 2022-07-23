@@ -12,6 +12,46 @@ from api.tiebaApi import getThread, getSubPost
 logger = logging.getLogger("main")
 
 
+class LightRemoteThread:
+    class ThreadInvalidError(Exception):
+        def __init__(self, response: dict):
+            self.code = response.get("error_code")
+            self.message = response.get("error_msg")
+
+        def __str__(self):
+            return f'[{self.__class__.__name__}] 错误 {self.code or "(无代码)"}：{self.message or "无消息"}'
+
+    def __init__(self, threadId, lzOnly: bool = True, fullSubpost: bool = False):
+        thread = getThread(threadId, page=1, lzOnly=lzOnly)
+        self.dataRequestTime = int(time.time() * 1000)
+        if thread.get("page") is None:
+            raise self.ThreadInvalidError(thread)
+        if fullSubpost:
+            for post in thread["post_list"]:
+                subpostNum = int(post["sub_post_number"])
+                if subpostNum > 0:
+                    subpostInfo = getSubPost(threadId, post["id"], 0, rn=subpostNum)
+                    post["sub_post_list"] = subpostInfo["subpost_list"]
+        self.origData = thread
+
+    def getThreadInfo(self):
+        base = self.origData["thread"]
+        return {
+            "id": base["id"],
+            "title": base["thread_info"]["title"],
+            "createTime": base["thread_info"]["create_time"],
+            "author": {
+                "id": base["author"]["id"],
+                "origName": base["author"]["name"],
+                "displayName": base["author"]["name_show"],
+            },
+            "forum": {
+                "id": base["thread_info"]["forum_id"],
+                "name": base["thread_info"]["forum_name"],
+            },
+        }
+
+
 class RemoteThread:
     class ThreadInvalidError(Exception):
         def __init__(self, response: dict):
@@ -82,21 +122,21 @@ class RemoteThread:
             self.origData[f"page_{page}"] = thread
         self.dataRequested = True
 
-    def isDataRequested(func):
+    def DataRequested(func):
         @wraps(func)
         def wrapper(self, *args, **kwargs):
             if not self.dataRequested:
-                raise self.DataNotRequestedException()
+                raise self.DataNotRequestedError()
             else:
                 return func(self, *args, **kwargs)
 
         return wrapper
 
-    @isDataRequested
+    @DataRequested
     def getOrigData(self):
         return self.origData
 
-    @isDataRequested
+    @DataRequested
     def getThreadInfo(self):
         base = self.origData["page_1"]["thread"]
         return {
@@ -117,7 +157,7 @@ class RemoteThread:
     def sortPost(self, posts):
         return sorted(posts, key=lambda x: int(x["floor"]))
 
-    @isDataRequested
+    @DataRequested
     def getPosts(self, page=1):
         try:
             postList = self.origData[f"page_{page}"]["post_list"]
@@ -125,7 +165,7 @@ class RemoteThread:
         except KeyError as e:
             raise IndexError(f"Page {page} does not exist.") from e
 
-    @isDataRequested
+    @DataRequested
     def getFullPosts(self):
         fullList = []
         for pageNum in self.totalPageRange:
@@ -179,7 +219,7 @@ class RemoteThread:
             """
         return assets
 
-    @isDataRequested
+    @DataRequested
     def getAssets(self, page=1):
         posts = self.getPosts(page)
         assets = []
@@ -187,18 +227,18 @@ class RemoteThread:
             assets += self.analyzeAsset(post["content"])
         return assets
 
-    @isDataRequested
+    @DataRequested
     def getFullAssets(self):
         fullAssets = []
         for pageNum in self.totalPageRange:
             fullAssets += self.getAssets(pageNum)
         return fullAssets
 
-    @isDataRequested
+    @DataRequested
     def getUserList(self, page=1):
         return self.origData[f"page_{page}"]["user_list"]
 
-    @isDataRequested
+    @DataRequested
     def getFullUsers(self):
         fullUserList = []
         fullUserIdList = [user["id"] for user in fullUserList]
@@ -210,12 +250,12 @@ class RemoteThread:
                     fullUserList.append(user)
         return fullUserList
 
-    @isDataRequested
+    @DataRequested
     def getUsersById(self, page=1):
         userList = self.getUserList(page)
         return {user["id"]: user for user in userList}
 
-    @isDataRequested
+    @DataRequested
     def getFullUsersById(self):
         fullUserList = {}
         for pageNum in self.totalPageRange:
@@ -223,7 +263,7 @@ class RemoteThread:
             fullUserList |= userList
         return fullUserList
 
-    @isDataRequested
+    @DataRequested
     def getPortraits(self, page=1):
         userList = self.getUserList(page)
         return [
@@ -235,7 +275,7 @@ class RemoteThread:
             for user in userList
         ]
 
-    @isDataRequested
+    @DataRequested
     def getFullPortraits(self):
         fullPortraitList = []
         for pageNum in self.totalPageRange:
@@ -266,7 +306,7 @@ class LocalThread:
         :type storeDir: str
         :param newThreadId: 新存档的贴子 ID，默认为 None
         :type newThreadId: int, optional
-        :raises self.LocalThreadNoOverwriteException: 若原存档目录有效且传入了 `newThreadId`，则抛出此异常
+        :raises self.LocalThreadNoOverwriteError: 若原存档目录有效且传入了 `newThreadId`，则抛出此异常
         """
         self.storeDir = os.path.abspath(storeDir)
         self.assetDir = os.path.join(self.storeDir, "assets")
@@ -293,12 +333,19 @@ class LocalThread:
         self.origData = None
         self.remoteThread = None
 
-        self.__isValid = False
+        self.isValid = False
         self.__checkValid()
-        if self.__isValid:
+        if self.isValid:
             if newThreadId:
                 raise self.LocalThreadNoOverwriteError()
             self._fillLocalData()
+
+    @property
+    def threadId(self):
+        return (self.threadInfo and self.threadInfo.get("id")) or self.newThreadId
+
+    def __log(self, msg, level: int = logging.DEBUG):
+        logger.log(level, f"LocalThread({self.threadId}): {msg}")
 
     def __checkValid(self):
         def __test(filename):
@@ -309,9 +356,9 @@ class LocalThread:
             __test(os.path.join(self.storeDir, "threadInfo.json"))
             __test(os.path.join(self.storeDir, "posts.json"))
             __test(os.path.join(self.storeDir, "users.json"))
-            self.__isValid = True
+            self.isValid = True
         except (FileNotFoundError, json.JSONDecodeError) as e:
-            self.__isValid = False
+            self.isValid = False
             if self.newThreadId is None:
                 raise self.LocalThreadInvalidError() from e
 
@@ -367,14 +414,14 @@ class LocalThread:
             os.makedirs(assetSortedDir, exist_ok=True)
 
             with open(os.path.join(assetSortedDir, assetObj["filename"]), "wb") as f:
-                logger.debug(f"正在保存资源 {assetObj['filename']}")
+                self.__log(f"正在保存资源 {assetObj['filename']}")
                 f.write(requests.get(assetObj["src"]).content)
             yield assetObj
 
     def _storePortraits(self, portraits: list = None):
         for portrait in portraits:
             portraitFilename = os.path.join(self.portraitDir, f'{portrait["id"]}.jpg')
-            logger.debug(f'正在保存头像 {portrait["portrait"]}(ID {portrait["id"]})……')
+            self.__log(f'正在保存头像 {portrait["portrait"]}(ID {portrait["id"]})')
             with open(portraitFilename, "wb") as f:
                 f.write(requests.get(portrait["src"]).content)
             yield portrait
@@ -395,7 +442,6 @@ class LocalThread:
             ) as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
 
-        logger.debug("将数据写入文件……")
         self._storeOrigData(self.remoteThread.dataRequestTime)
         threadInfo = {
             **self.threadInfo,
@@ -412,7 +458,7 @@ class LocalThread:
 
     def _store(self):
         # yield(step, [progress, totalProgress], extraData)
-        os.makedirs(self.storeDir, exist_ok=True)
+        self.__log(f"开始存档 {self.threadId}", logging.INFO)
 
         yield (0, [0, 1], None)
         _data = {
@@ -421,14 +467,16 @@ class LocalThread:
         }
         yield (0, [1, 1], self._fillRemoteData())
 
+        os.makedirs(self.storeDir, exist_ok=True)
+
         yield (1, [0, 1], None)
         # Analyze & update data
         self.threadInfo = self.remoteThread.getThreadInfo()
         self.users = self.remoteThread.getFullUsersById()
         self.origData = self.remoteThread.getOrigData()
-        if self.__isValid:
-            _a = self._updateAssets() if self.storeOptions["assets"] else ...
-            _p = self._updatePortraits() if self.storeOptions["portraits"] else ...
+        if self.isValid:
+            _a = self._updateAssets() if self.storeOptions["assets"] else []
+            _p = self._updatePortraits() if self.storeOptions["portraits"] else []
             _data["update"]["posts"] = self._updatePosts()
             _data["update"]["assets"] = _data["download"]["assets"] = _a
             _data["update"]["portraits"] = _data["download"]["portraits"] = _p
@@ -472,7 +520,7 @@ class LocalThread:
         self.__checkValid()
         self._fillLocalData()
         yield (3, [1, 1], None)
-        logger.info("存档完成！")
+        self.__log("存档完成！", logging.INFO)
 
     def _updatePosts(self, _new: list = None, _old: list = None) -> list:
         # WARNING: NOT TESTED
@@ -512,7 +560,7 @@ class LocalThread:
             elif floorNum in oldFloors:
                 floor = oldFloors[floorNum]
             else:
-                logger.info(f"{floorNum} 楼完全缺失……")
+                self.__log(f"{floorNum} 楼完全缺失", logging.INFO)
             if floor is not None:
                 updatedPosts.append(floor)
 
@@ -526,7 +574,7 @@ class LocalThread:
 
         downloadAssets = []
         if newAssets == oldAssets:
-            logger.info("无需更新资源……")
+            self.__log("无需更新资源", logging.INFO)
         else:
             combinedAssets = newAssets + oldAssets
             duplicatedAssets = list(set(combinedAssets))
