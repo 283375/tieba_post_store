@@ -41,7 +41,7 @@ if __name__ == "__main__":
             )
 
         def handle(self, record):
-            logWindowWidget.addLogRecord(record)
+            logWindowWidget._model.appendLogRecord(record)
             if record.levelno >= logging.INFO:
                 _vars.logStatusBar.showMessage(f"最新日志: {self.format(record)}")
                 app.processEvents()

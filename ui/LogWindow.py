@@ -1,81 +1,123 @@
+import time
 import logging
-from copy import deepcopy
-from time import sleep
 
 from PySide6.QtWidgets import (
-    QListWidget,
-    QListWidgetItem,
+    QListView,
     QWidget,
-    QLabel,
     QPushButton,
+    QFileDialog,
+    QMessageBox,
     QVBoxLayout,
     QHBoxLayout,
-    QGroupBox,
-    QCheckBox,
 )
-from PySide6.QtCore import Signal, Slot, Qt, QThread
+from PySide6.QtCore import Qt, QAbstractListModel
 
-# a = logging.LogRecord()
-
+from typing import List, Dict, Union
+from PySide6.QtCore import QModelIndex, QPersistentModelIndex, QByteArray
 
 logger = logging.getLogger("main")
 
+previewFormatter = logging.Formatter(
+    "[%(asctime)s][%(levelname)s][%(funcName)s() in %(module)s>> %(message)s",
+    "%m-%d %H:%M:%S",
+)
+saveFormatter = logging.Formatter(
+    "[%(asctime)s][%(levelno)s:%(levelname)s][%(funcName)s() in %(module)s>> %(message)s",
+    "%Y-%m-%d %H:%M:%S",
+)
 
-class FakeLoggingThread(QThread):
+
+class LogRecordAbstractListModel(QAbstractListModel):
+    __logRecordList = []
+    LogRecordRole = 20
+
     def __init__(self, parent=None):
-        super(FakeLoggingThread, self).__init__(parent)
+        super(LogRecordAbstractListModel, self).__init__(parent)
 
-    def run(self):
-        for i in range(100000):
-            logger.debug(f"debug message {i}")
-            if i % 100 == 0:
-                print(f"{i}/100000")
+    def rowCount(self, parent=None) -> int:
+        return len(self.__logRecordList)
+
+    def roleNames(self) -> Dict[int, QByteArray]:
+        return {**super().roleNames(), self.LogRecordRole: QByteArray(b"LogRecord")}
+
+    def data(
+        self,
+        index: Union[QModelIndex, QPersistentModelIndex],
+        role: int = Qt.DisplayRole,
+    ):
+        if not index.isValid() or index.row() >= self.rowCount():
+            return None
+        return self.__logRecordList[index.row()].get(role)
+
+    def appendLogRecord(self, record: logging.LogRecord):
+        _lastRow = self.rowCount()
+        self.beginInsertRows(QModelIndex(), _lastRow, _lastRow)
+        self.__logRecordList.append(
+            {
+                Qt.DisplayRole: previewFormatter.format(record),
+                self.LogRecordRole: record,
+            }
+        )
+        self.endInsertRows()
+
+    def _getAllLogRecords(self):
+        return [rObj[self.LogRecordRole] for rObj in self.__logRecordList]
+
 
 class LogWindowWidget(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.logFormatter = logging.Formatter(
-            "[%(asctime)s][%(levelname)s]<%(funcName)s() in %(module)s>: %(message)s",
-            "%m-%d %H:%M:%S",
-        )
-        self.logRecords = []
+    def __init__(self, parent=None):
+        super(LogWindowWidget, self).__init__(parent)
+        self.fileDialog = QFileDialog()
+        self.buttonWrapper = QHBoxLayout()
+        self.exportSelectionButton = QPushButton("导出选中日志")
+        self.exportAllButton = QPushButton("导出所有日志")
+        self.exportSelectionButton.clicked.connect(self.exportSelection)
+        self.exportAllButton.clicked.connect(self.exportAll)
+        self.buttonWrapper.addWidget(self.exportSelectionButton)
+        self.buttonWrapper.addWidget(self.exportAllButton)
 
-        self.totalLabel = QLabel("共 0 条记录")
-        self.displayCountLabel = QLabel("正显示 0 条记录")
+        self._view = QListView(self)
+        self._view.setAcceptDrops(False)
+        self._view.setDragEnabled(False)
+        self._view.setSelectionMode(QListView.ExtendedSelection)
 
-        self.upperLabelWrapper = QWidget()
-        self.upperLabelWrapper.layout = QHBoxLayout(self.upperLabelWrapper)
-        self.upperLabelWrapper.layout.addWidget(self.totalLabel)
-        self.upperLabelWrapper.layout.addWidget(self.displayCountLabel)
-
-        self.listWidget = QListWidget(self)
-        self.listWidget.setSelectionMode(QListWidget.ExtendedSelection)
-
-        self.button = QPushButton("Start Fake Logging")
-        self.button.clicked.connect(self.__startFakeLogging)
+        self._model = LogRecordAbstractListModel()
+        self._model.rowsInserted.connect(self._view.scrollToBottom)
+        self._view.setModel(self._model)
 
         self.layout = QVBoxLayout(self)
-        self.layout.addWidget(self.upperLabelWrapper)
-        self.layout.addWidget(self.listWidget)
-        self.layout.addWidget(self.button)
+        self.layout.addWidget(self._view)
+        self.layout.addLayout(self.buttonWrapper)
 
-    def __displayRecord(self, record):
-        self.listWidget.addItem(QListWidgetItem(self.logFormatter.format(record)))
-        self.updateDisplayRecordLabel()
+    def getSaveFilename(self, __time: time.struct_time = None):
+        _time = __time or time.localtime()
+        timeStr = time.strftime("%Y%m%d-%H%M%S", _time)
+        filename = f"tieba_post_store_{timeStr}.log"
+        return self.fileDialog.getSaveFileName(self, "选择导出文件路径", filename)
 
-    def addLogRecord(self, record):
-        # print(record.__dict__)
-        self.logRecords.append(record)
-        self.__displayRecord(record)
-        self.updateTotalLabel()
+    def _writeLogToFile(self, filename, logs: List[logging.LogRecord]) -> None:
+        humanReadable = [saveFormatter.format(r) for r in logs]
+        details = [str(r.__dict__) for r in logs]
 
-    def updateTotalLabel(self):
-        self.totalLabel.setText(f"共 {len(self.logRecords)} 条记录")
+        with open(filename, "w", encoding="utf-8") as f:
+            f.write("----- Human readable -----\n")
+            [f.write(f"{_}\n") for _ in humanReadable]
+            f.write("\n----- Details -----\n")
+            [f.write(f"{_}\n") for _ in details]
 
-    def updateDisplayRecordLabel(self):
-        self.displayCountLabel.setText(f"正显示 {self.listWidget.count()} 条记录")
+    def exportAll(self):
+        if records := self._model._getAllLogRecords():
+            if filename := self.getSaveFilename()[0]:
+                self._writeLogToFile(filename, records)
+        else:
+            QMessageBox.warning(self, "导不出来", "没有日志可供导出")
 
-    @Slot()
-    def __startFakeLogging(self):
-        fakeLoggingThread = FakeLoggingThread(self)
-        fakeLoggingThread.start()
+    def exportSelection(self):
+        if records := [
+            self._model.data(i, self._model.LogRecordRole)
+            for i in self._view.selectedIndexes()
+        ]:
+            if filename := self.getSaveFilename()[0]:
+                self._writeLogToFile(filename, records)
+        else:
+            QMessageBox.warning(self, "导不出来", "没有选择任何日志")
