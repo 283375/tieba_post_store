@@ -12,6 +12,7 @@ from utils.generateCUID import generateFinalCUID
 
 logger = logging.getLogger("main")
 
+
 def getDefaultParams(type: str):
     initTimestamp = time.time() * 1000
     imei = generateRandomIMEI()
@@ -112,7 +113,7 @@ def generateSign(params: dict):
     return md5(sortedParamsStr.encode("utf-8")).hexdigest()
 
 
-def miniApi(suffix, _params, _headers = None):
+def miniApi(suffix, _params, _headers=None):
     if _headers is None:
         _headers = {}
     REQUEST_ADDRESS = f"http://c.tieba.baidu.com{suffix}"
@@ -124,7 +125,7 @@ def miniApi(suffix, _params, _headers = None):
     return requests.get(REQUEST_ADDRESS, params=reqParams, headers=reqHeaders)
 
 
-def officialApi(suffix, _params, _headers = None):
+def officialApi(suffix, _params, _headers=None):
     if _headers is None:
         _headers = {}
     REQUEST_ADDRESS = f"http://c.tieba.baidu.com{suffix}"

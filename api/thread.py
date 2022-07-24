@@ -185,11 +185,7 @@ class RemoteThread:
                         "size": contentBlock["size"],
                         "filename": "{}{}".format(
                             contentBlock["pic_id"],
-                            os.path.splitext(
-                                os.path.basename(
-                                    urlparse(contentBlock["origin_src"]).path
-                                )
-                            )[1],
+                            os.path.splitext(os.path.basename(urlparse(contentBlock["origin_src"]).path))[1],
                         ),
                     }
                 )
@@ -199,9 +195,7 @@ class RemoteThread:
                         "type": "video",
                         "src": contentBlock["link"],
                         "size": contentBlock["origin_size"],
-                        "filename": os.path.basename(
-                            urlparse(contentBlock["link"]).path
-                        ),
+                        "filename": os.path.basename(urlparse(contentBlock["link"]).path),
                     }
                 )
             elif contentType == "10":  # audio
@@ -403,9 +397,7 @@ class LocalThread:
             raise self.LocalThreadInvalidError() from e
 
     def _fillRemoteData(self):
-        self.remoteThread = RemoteThread(
-            self.newThreadId or self.threadInfo.get("id"), self.storeOptions["lzOnly"]
-        )
+        self.remoteThread = RemoteThread(self.newThreadId or self.threadInfo.get("id"), self.storeOptions["lzOnly"])
         return self.remoteThread
 
     def _storeAssets(self, assets=None):
@@ -437,9 +429,7 @@ class LocalThread:
 
     def _writeDataToFile(self):
         def _writeJson(filename, data):
-            with open(
-                os.path.join(self.storeDir, filename), "w", encoding="utf-8"
-            ) as f:
+            with open(os.path.join(self.storeDir, filename), "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
 
         self._storeOrigData(self.remoteThread.dataRequestTime)
@@ -539,12 +529,8 @@ class LocalThread:
             if floorNum in newFloors and floorNum in oldFloors:
                 floor = newFloors.get(floorNum, oldFloors.get(floorNum))
                 # 单独更新楼中楼（以防回复被举报/异常消失等情况）
-                oldSubPosts = {
-                    sp["id"]: sp for sp in oldFloors[floorNum]["sub_post_list"]
-                }
-                newSubPosts = {
-                    sp["id"]: sp for sp in newFloors[floorNum]["sub_post_list"]
-                }
+                oldSubPosts = {sp["id"]: sp for sp in oldFloors[floorNum]["sub_post_list"]}
+                newSubPosts = {sp["id"]: sp for sp in newFloors[floorNum]["sub_post_list"]}
                 subPosts = sorted(
                     list((oldSubPosts | newSubPosts).values()),
                     key=lambda x: int(x["time"]),
@@ -577,11 +563,7 @@ class LocalThread:
         else:
             combinedAssets = newAssets + oldAssets
             duplicatedAssets = list(set(combinedAssets))
-            downloadAssets = [
-                assetObj
-                for assetObj in combinedAssets
-                if assetObj not in duplicatedAssets
-            ]
+            downloadAssets = [assetObj for assetObj in combinedAssets if assetObj not in duplicatedAssets]
             __sort_order = lambda x: {"image": 1, "video": 2, "audio": 3}[x["type"]]
             self.assets = sorted(combinedAssets, key=__sort_order)
 

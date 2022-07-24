@@ -113,10 +113,7 @@ class LogWindowWidget(QWidget):
             QMessageBox.warning(self, "导不出来", "没有日志可供导出")
 
     def exportSelection(self):
-        if records := [
-            self._model.data(i, self._model.LogRecordRole)
-            for i in self._view.selectedIndexes()
-        ]:
+        if records := [self._model.data(i, self._model.LogRecordRole) for i in self._view.selectedIndexes()]:
             if filename := self.getSaveFilename()[0]:
                 self._writeLogToFile(filename, records)
         else:

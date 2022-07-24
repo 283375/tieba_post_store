@@ -22,9 +22,12 @@ class WorkDirectoryInstance(QObject):
         self.dirChanged.emit(dir)
         logger.info(f"已将工作目录更改至 {dir}")
 
+
 workDirectoryInstance = WorkDirectoryInstance()
+
 
 class Signals(QObject):
     refreshWorkDirectory = Signal()
+
 
 signals = Signals()

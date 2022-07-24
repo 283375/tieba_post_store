@@ -26,9 +26,7 @@ if __name__ == "__main__":
     threadInfoWidget = ThreadInfo.ThreadInfoWidget()
     logWindowWidget = LogWindow.LogWindowWidget()
 
-    _vars.workDirectoryInstance.dirChanged.connect(
-        threadListWidget.workDirectoryChanged
-    )
+    _vars.workDirectoryInstance.dirChanged.connect(threadListWidget.workDirectoryChanged)
     _vars.signals.refreshWorkDirectory.connect(threadListWidget.refreshDirectory)
     threadListWidget.threadSelected.connect(threadInfoWidget.updateLocalThread)
 

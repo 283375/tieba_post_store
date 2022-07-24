@@ -30,13 +30,9 @@ class ThreadListWidget(QListWidget):
         statusBar.showMessage(f"正在扫描 {workDirectory}")
         app.processEvents()
 
-        savedThreads = [
-            t for dir, t in scanDirectory(workDirectory) if type(t) == LocalThread
-        ]
+        savedThreads = [t for dir, t in scanDirectory(workDirectory) if type(t) == LocalThread]
 
-        statusBar.showMessage(
-            f"在 {workDirectory} 中找到了 {len(savedThreads)} 个有效存档目录", 10000
-        )
+        statusBar.showMessage(f"在 {workDirectory} 中找到了 {len(savedThreads)} 个有效存档目录", 10000)
 
         self.clear()
         for i, thread in enumerate(savedThreads):
