@@ -61,16 +61,15 @@ if __name__ == "__main__":
     listWrapper.layout.addWidget(threadListWidget)
     listWrapper.layout.addWidget(newThreadWidget)
 
-    indexLowerWrapper = QWidget()
-    indexLowerWrapper.layout = QHBoxLayout(indexLowerWrapper)
-    indexLowerWrapper.layout.setStretch(0, 0)
-    indexLowerWrapper.layout.addWidget(listWrapper)
-    indexLowerWrapper.layout.addWidget(threadInfoWidget)
+    indexLowerWrapper = QHBoxLayout()
+    indexLowerWrapper.setStretch(0, 0)
+    indexLowerWrapper.addWidget(listWrapper)
+    indexLowerWrapper.addWidget(threadInfoWidget)
 
     indexWrapper = QWidget()
     indexWrapper.layout = QVBoxLayout(indexWrapper)
     indexWrapper.layout.addWidget(workDirectoryWidget)
-    indexWrapper.layout.addWidget(indexLowerWrapper)
+    indexWrapper.layout.addLayout(indexLowerWrapper)
 
     tab.addTab(indexWrapper, "Index")
     tab.addTab(logWindowWidget, "Log")

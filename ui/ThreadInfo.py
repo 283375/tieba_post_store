@@ -27,8 +27,7 @@ class ThreadInfoWidget(QWidget):
         super().__init__()
         self.localThread = None
 
-        self.infoFormWrapper = QWidget(self)
-        self.infoFormLayout = QFormLayout(self.infoFormWrapper)
+        self.infoFormWrapper = QFormLayout()
         self.versionLabel = QLabel("")
         self.idLabel = QLabel("")
         self.titleLabel = QLabel("")
@@ -37,21 +36,21 @@ class ThreadInfoWidget(QWidget):
         self.createTimeLabel = QLabel("")
         self.storedTimeLabel = QLabel("")
         self.updateTimeLabel = QLabel("")
-        self.infoFormLayout.addRow("存档版本", self.versionLabel)
-        self.infoFormLayout.addRow("贴子 ID", self.idLabel)
-        self.infoFormLayout.addRow("标题", self.titleLabel)
-        self.infoFormLayout.addRow("楼主", self.authorLabel)
-        self.infoFormLayout.addRow("存档于", self.storeDirLabel)
-        self.infoFormLayout.addRow("贴子发布时间", self.createTimeLabel)
-        self.infoFormLayout.addRow("存档时间", self.storedTimeLabel)
-        self.infoFormLayout.addRow("最后更新时间", self.updateTimeLabel)
+        self.infoFormWrapper.addRow("存档版本", self.versionLabel)
+        self.infoFormWrapper.addRow("贴子 ID", self.idLabel)
+        self.infoFormWrapper.addRow("标题", self.titleLabel)
+        self.infoFormWrapper.addRow("楼主", self.authorLabel)
+        self.infoFormWrapper.addRow("存档于", self.storeDirLabel)
+        self.infoFormWrapper.addRow("贴子发布时间", self.createTimeLabel)
+        self.infoFormWrapper.addRow("存档时间", self.storedTimeLabel)
+        self.infoFormWrapper.addRow("最后更新时间", self.updateTimeLabel)
 
         self.vSpacer = QSpacerItem(1, 20, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
         self.storeThread = StoreThread()
 
         self.layout = QVBoxLayout(self)
-        self.layout.addWidget(self.infoFormWrapper)
+        self.layout.addLayout(self.infoFormWrapper)
         self.layout.addSpacerItem(self.vSpacer)
         self.layout.addWidget(self.storeThread)
 

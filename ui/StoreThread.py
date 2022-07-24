@@ -56,13 +56,12 @@ class StoreThread(QWidget):
         self.pushButton = QPushButton("存档")
         self.pushButton.clicked.connect(self.storeStart)
 
-        self.lowerWrapper = QWidget(self)
-        self.lowerWrapper.layout = QHBoxLayout(self.lowerWrapper)
-        self.lowerWrapper.layout.addWidget(self.pushButton)
-        self.lowerWrapper.layout.addWidget(self.label)
+        self.lowerWrapper = QHBoxLayout()
+        self.lowerWrapper.addWidget(self.pushButton)
+        self.lowerWrapper.addWidget(self.label)
         self.layout = QVBoxLayout(self)
         self.layout.addWidget(self.progressBar)
-        self.layout.addWidget(self.lowerWrapper)
+        self.layout.addLayout(self.lowerWrapper)
 
         self._thread = StoreThreadThread()
         self._thread.actionUpdate.connect(self.storeActionUpdate)
