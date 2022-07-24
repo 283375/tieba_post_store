@@ -86,9 +86,13 @@ class StoreThread(QWidget):
         newProgress = action[1][0]
         newTotalProgress = action[1][1]
         if newStep > self.step:
-            self.progressBar.setMaximum(newTotalProgress)
-            self.progressBar.setValue(newProgress)
             self.step = newStep
+            if newTotalProgress < 0:
+                self.progressBar.setMinimum(0)
+                self.progressBar.setMaximum(0)
+            else:
+                self.progressBar.setMaximum(newTotalProgress)
+                self.progressBar.setValue(newProgress)
         else:
             self.progressBar.setValue(newProgress)
         self.label.setText(

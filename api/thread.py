@@ -460,13 +460,12 @@ class LocalThread:
         # yield(step, [progress, totalProgress], extraData)
         self.__log(f"开始存档 {self.threadId}", logging.INFO)
 
-        yield (0, [0, 1], None)
+        yield (0, [0, -1], None)
         _data = {
             "update": {"posts": None, "assets": None, "portraits": None},
             "download": {"assets": [], "portraits": []},
         }
-        yield (0, [1, 1], self._fillRemoteData())
-
+        yield (0, [0, -1], self._fillRemoteData())
         os.makedirs(self.storeDir, exist_ok=True)
 
         yield (1, [0, 1], None)
