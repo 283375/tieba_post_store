@@ -100,6 +100,7 @@ class RemoteThread:
             return range(1, self.totalPage + 1)
 
     def requestData(self, lzOnly):
+        logger.debug(f"{self.threadId} preRequest")
         preRequest = getThread(self.threadId, page=1, lzOnly=lzOnly)
         if preRequest.get("page") is None:
             raise self.ThreadInvalidError(preRequest)
@@ -113,13 +114,12 @@ class RemoteThread:
                 subpostNum = int(post["sub_post_number"])
                 if subpostNum > 0:
                     subposts = []
-                    _page = 1
-                    leftSubpostNum = subpostNum
-                    while leftSubpostNum > 0:
-                        subpostInfo = getSubPost(self.threadId, post["id"], 0, _page, 20)
+                    logger.debug(f'{self.threadId} > {post["id"]} subpost preRequest')
+                    preRequest = getSubPost(self.threadId, post["id"], page=1)
+                    pages = range(1, int(preRequest["page"]["total_page"]) + 1)
+                    for _page in pages:
+                        subpostInfo = getSubPost(self.threadId, post["id"], page=_page)
                         subposts += subpostInfo["subpost_list"]
-                        _page += 1
-                        leftSubpostNum -= 20
                     post["sub_post_list"] = subposts
             self.origData[f"page_{page}"] = thread
         self.dataRequested = True
@@ -535,7 +535,7 @@ class LocalThread:
                 newSubPosts = {sp["id"]: sp for sp in newFloors[floorNum]["sub_post_list"]}
                 subPosts = sorted(
                     list((oldSubPosts | newSubPosts).values()),
-                    key=lambda x: int(x["time"]),
+                    key=lambda x: int(x["id"]),
                 )
                 floor["sub_post_list"] = subPosts
 

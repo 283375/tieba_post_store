@@ -159,14 +159,14 @@ def getThread(threadId, page, lzOnly: bool = False):
     return req.json()
 
 
-def getSubPost(threadId, postId, subpostId, page=1, rn=20):
+def getSubPost(threadId, postId, spid: int = 0, page: int = 1, rn: int = 30):
     logger.debug(f"getSubPost {threadId}->{postId}")
     reqParams = {
         "kz": str(threadId),
-        "pn": str(page),
+        "pn": page,
         "pid": str(postId),
-        "spid": str(subpostId),
-        "rn": str(rn),
+        "spid": spid,
+        "rn": rn,
     }
     req = miniApi("/c/f/pb/floor", reqParams)
     return req.json()
