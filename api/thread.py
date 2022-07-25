@@ -227,44 +227,46 @@ class RemoteThread:
         return fullAssets
 
     @DataRequested
-    def getUserList(self, page=1):
-        return self.origData[f"page_{page}"]["user_list"]
-
-    @DataRequested
-    def getFullUsers(self):
-        fullUserList = []
-        fullUserIdList = [user["id"] for user in fullUserList]
-
-        for pageNum in self.totalPageRange:
-            userList = self.getUserList(pageNum)
-            for user in userList:
-                if user["id"] not in fullUserIdList:
-                    fullUserList.append(user)
-        return fullUserList
-
-    @DataRequested
     def getUsersById(self, page=1):
-        userList = self.getUserList(page)
-        return {user["id"]: user for user in userList}
+        users = {}
+        # 先行获取所有楼中楼内发言的用户
+        for post in self.getPosts(page):
+            if subposts := post.get("sub_post_list"):
+                for subpost in subposts:
+                    users[subpost["author"]["id"]] = subpost["author"]
+        # 再用 user_list 内包含的用户信息进行更新
+        for user in self.origData[f"page_{page}"]["user_list"]:
+            users[user["id"]] = user
+        return users
 
     @DataRequested
     def getFullUsersById(self):
-        fullUserList = {}
+        fullUsers = {}
         for pageNum in self.totalPageRange:
-            userList = self.getUsersById(pageNum)
-            fullUserList |= userList
-        return fullUserList
+            fullUsers |= self.getUsersById(pageNum)
+        return fullUsers
+
+    @DataRequested
+    def getUsers(self, page=1):
+        return list(self.getUsersById(page).values())
+
+    @DataRequested
+    def getFullUsers(self):
+        fullUsers = []
+        for pageNum in self.totalPageRange:
+            fullUsers += self.getUsers(pageNum)
+        return fullUsers
 
     @DataRequested
     def getPortraits(self, page=1):
-        userList = self.getUserList(page)
+        users = self.getUsers(page)
         return [
             {
                 "id": user["id"],
                 "portrait": user["portrait"],
                 "src": "http://tb.himg.baidu.com/sys/portrait/item/" + user["portrait"],
             }
-            for user in userList
+            for user in users
         ]
 
     @DataRequested
