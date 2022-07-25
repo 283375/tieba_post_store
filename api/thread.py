@@ -183,12 +183,10 @@ class RemoteThread:
                         "src": contentBlock["origin_src"],
                         "id": contentBlock["pic_id"],
                         "size": contentBlock["size"],
-                        "filename": "{}{}".format(
-                            contentBlock["pic_id"],
-                            os.path.splitext(os.path.basename(urlparse(contentBlock["origin_src"]).path))[1],
-                        ),
+                        "filename": f'{contentBlock["pic_id"]}{os.path.splitext(os.path.basename(urlparse(contentBlock["origin_src"]).path))[1]}',
                     }
                 )
+
             elif contentType == "5":  # video
                 assets.append(
                     {
