@@ -112,13 +112,15 @@ class RemoteThread:
             for post in thread["post_list"]:
                 subpostNum = int(post["sub_post_number"])
                 if subpostNum > 0:
-                    subpostInfo = getSubPost(
-                        self.threadId,
-                        postId=post["id"],
-                        subpostId=0,
-                        rn=subpostNum,
-                    )
-                    post["sub_post_list"] = subpostInfo["subpost_list"]
+                    subposts = []
+                    _page = 1
+                    leftSubpostNum = subpostNum
+                    while leftSubpostNum > 0:
+                        subpostInfo = getSubPost(self.threadId, post["id"], 0, _page, 20)
+                        subposts += subpostInfo["subpost_list"]
+                        _page += 1
+                        leftSubpostNum -= 20
+                    post["sub_post_list"] = subposts
             self.origData[f"page_{page}"] = thread
         self.dataRequested = True
 
