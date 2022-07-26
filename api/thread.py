@@ -116,10 +116,11 @@ class RemoteThread:
                     subposts = []
                     logger.debug(f'{self.threadId} > {post["id"]} subpost preRequest')
                     preRequest = getSubPost(self.threadId, post["id"], page=1)
-                    pages = range(1, int(preRequest["page"]["total_page"]) + 1)
-                    for _page in pages:
-                        subpostInfo = getSubPost(self.threadId, post["id"], page=_page)
-                        subposts += subpostInfo["subpost_list"]
+                    subposts += preRequest["subpost_list"]
+                    if int(preRequest["page"]["total_page"]) > 1:
+                        pages = range(2, int(preRequest["page"]["total_page"]) + 1)
+                        for _page in pages:
+                            subposts += getSubPost(self.threadId, post["id"], page=_page)["subpost_list"]
                     post["sub_post_list"] = subposts
             self.origData[f"page_{page}"] = thread
         self.dataRequested = True
