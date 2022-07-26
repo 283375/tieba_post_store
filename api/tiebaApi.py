@@ -3,6 +3,7 @@ import random
 import requests
 import logging
 from hashlib import md5
+from functools import wraps
 
 from utils.generateIMEI import generateRandomIMEI
 from utils.generateCUID import generateFinalCUID
@@ -113,6 +114,28 @@ def generateSign(params: dict):
     return md5(sortedParamsStr.encode("utf-8")).hexdigest()
 
 
+def RetryWhenFail(func):
+    @wraps(func)
+    def retry(*args, **kwargs):
+        MAX_RETRY = 5
+        for count in range(MAX_RETRY):
+            try:
+                result = func(*args, **kwargs)
+            except (requests.ConnectTimeout, requests.ReadTimeout) as e:
+                if count + 1 < MAX_RETRY:
+                    _args = ", ".join([str(_) for _ in args])
+                    _kwargs = ", ".join([f"{k}={str(v)}" for k, v in kwargs.items()])
+                    logger.warning(f"{func.__name__}({_args},{_kwargs}) has retried {count + 1} times due to {str(e)}")
+                else:
+                    logger.error(e)
+                    raise e
+            else:
+                return result
+
+    return retry
+
+
+@RetryWhenFail
 def miniApi(suffix, _params, _headers=None):
     if _headers is None:
         _headers = {}
@@ -125,6 +148,7 @@ def miniApi(suffix, _params, _headers=None):
     return requests.get(REQUEST_ADDRESS, params=reqParams, headers=reqHeaders)
 
 
+@RetryWhenFail
 def officialApi(suffix, _params, _headers=None):
     if _headers is None:
         _headers = {}
