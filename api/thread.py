@@ -52,15 +52,7 @@ class LightRemoteThread:
         }
 
 
-class RemoteThread:
-    class ThreadInvalidError(Exception):
-        def __init__(self, response: dict):
-            self.code = response.get("error_code")
-            self.message = response.get("error_msg")
-
-        def __str__(self):
-            return f'[{self.__class__.__name__}] 错误 {self.code or "(无代码)"}：{self.message or "无消息"}'
-
+class RemoteThread(LightRemoteThread):
     class DataNotRequestedError(Exception):
         def __init__(self):
             self.message = f"{self.__class__.__name__} 尚未请求数据，请先调用 requestData()。"
