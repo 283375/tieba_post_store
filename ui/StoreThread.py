@@ -1,7 +1,10 @@
+import logging
+from requests import ConnectTimeout, ReadTimeout
 from PySide6.QtWidgets import (
     QProgressBar,
     QLabel,
     QPushButton,
+    QMessageBox,
     QWidget,
     QVBoxLayout,
     QHBoxLayout,
@@ -11,6 +14,8 @@ from PySide6.QtCore import Qt, QThread, Signal, Slot
 
 from api.thread import LocalThread
 from ._vars import app, signals
+
+logger = logging.getLogger("main")
 
 
 class StoreThreadThread(QThread):
@@ -101,7 +106,13 @@ class StoreThread(QWidget):
 
     @Slot(Exception)
     def storeExceptionOccured(self, e: Exception):
-        raise e
+        logger.error(
+            f"{self.__class__.__name__}: Store {self.localThread.threadId} failed due to: {str(e)}"
+        )
+        errorText = "出现意外错误"
+        if type(e) in (ConnectTimeout, ReadTimeout):
+            errorText = "网络超时"
+        QMessageBox.critical(self, "错误", f"{errorText}，存档失败。详细信息:\n{str(e)}")
 
     @Slot()
     def storeFinal(self):
