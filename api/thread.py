@@ -395,6 +395,18 @@ class LocalThread:
         self.remoteThread = RemoteThread(self.newThreadId or self.threadInfo.get("id"), self.storeOptions["lzOnly"])
         return self.remoteThread
 
+    def requestWithRetry(self, src, max_retry: int = 3):
+        for count in range(max_retry):
+            try:
+                result = requests.get(src)
+            except (requests.ConnectTimeout, requests.ReadTimeout) as e:
+                if count + 1 == max_retry:
+                    raise e
+                else:
+                    logger.warning(f"request to {src} failed due to {str(e)}, retry count {count + 1}/{max_retry}")
+            else:
+                return result
+
     def _storeAssets(self, assets=None):
         for assetObj in assets:
             assetSortedDir = os.path.join(self.assetDir, assetObj["type"])
@@ -402,7 +414,7 @@ class LocalThread:
 
             with open(os.path.join(assetSortedDir, assetObj["filename"]), "wb") as f:
                 self.__log(f"正在保存资源 {assetObj['filename']}")
-                f.write(requests.get(assetObj["src"]).content)
+                f.write(self.requestWithRetry(assetObj["src"]).content)
             yield assetObj
 
     def _storePortraits(self, portraits: list = None):
@@ -410,7 +422,7 @@ class LocalThread:
             portraitFilename = os.path.join(self.portraitDir, f'{portrait["id"]}.jpg')
             self.__log(f'正在保存头像 {portrait["portrait"]}(ID {portrait["id"]})')
             with open(portraitFilename, "wb") as f:
-                f.write(requests.get(portrait["src"]).content)
+                f.write(self.requestWithRetry(portrait["src"]).content)
             yield portrait
 
     def _storeOrigData(self, timestamp):
