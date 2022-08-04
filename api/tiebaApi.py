@@ -25,8 +25,6 @@ def getDefaultParams(type: str):
         "M6 Note",
         "mblu S6",
         "SVTELE-NH75",
-        "Sevive Telecom|Nihility 75",
-        "ADDD KAIBAI_1ZU4y1G7AP",
     ]
     model = random.choice(models)
 

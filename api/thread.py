@@ -8,6 +8,8 @@ from urllib.parse import urlparse
 from functools import wraps
 
 from api.tiebaApi import getThread, getSubPost
+from utils.simpleSignal import SimpleSignal
+from utils.progressIndicator import ProgressIndicator
 
 logger = logging.getLogger("main")
 
@@ -85,13 +87,17 @@ class RemoteThread(LightRemoteThread):
         self.dataRequestTime = None
         if not lazyRequest:
             self.requestData(self.lzOnly)
+        
+        self.pageProgress = ProgressIndicator("RemoteThread-Page", "页面")
+        self.postProgress = ProgressIndicator("RemoteThread-Post", "回复贴")
 
     @property
     def totalPageRange(self):
         if self.totalPage:
             return range(1, self.totalPage + 1)
 
-    def requestData(self, lzOnly):
+    def requestData(self, _lzOnly: bool = None):
+        lzOnly = _lzOnly if _lzOnly is not None else self.lzOnly
         logger.debug(f"{self.threadId} preRequest")
         preRequest = getThread(self.threadId, page=1, lzOnly=lzOnly)
         if preRequest.get("page") is None:
@@ -100,9 +106,11 @@ class RemoteThread(LightRemoteThread):
         self.dataRequestTime = int(time.time() * 1000)
         self.totalPage = int(preRequest["page"]["total_page"])
 
+        self.pageProgress.updateProgress(0, self.totalPage)
         for page in self.totalPageRange:
             thread = getThread(self.threadId, page=page, lzOnly=lzOnly)
-            for post in thread["post_list"]:
+            self.postProgress.updateProgress(0, len(thread["post_list"]))
+            for i, post in enumerate(thread["post_list"]):
                 subpostNum = int(post["sub_post_number"])
                 if subpostNum > 0:
                     subposts = []
@@ -114,6 +122,9 @@ class RemoteThread(LightRemoteThread):
                         for _page in pages:
                             subposts += getSubPost(self.threadId, post["id"], page=_page)["subpost_list"]
                     post["sub_post_list"] = subposts
+                self.postProgress.updateProgress(i)
+            self.pageProgress.updateProgress(page)
+
             self.origData[f"page_{page}"] = thread
         self.dataRequested = True
 
@@ -320,7 +331,6 @@ class LocalThread:
         self.assets = None
         self.portraits = None
         self.origData = None
-        self.remoteThread = None
 
         self.isValid = False
         self.__checkValid()
@@ -328,6 +338,15 @@ class LocalThread:
             if newThreadId:
                 raise self.LocalThreadNoOverwriteError()
             self._fillLocalData()
+        self.remoteThread = RemoteThread(self.threadId, self.storeOptions["lzOnly"], lazyRequest=True)
+
+        # self.progressUpdatedSignal = SimpleSignal()
+        self.stepProgress = ProgressIndicator("LocalThread-Step")
+        self.stepDetailProgress = ProgressIndicator("LocalThread-StepDetail")
+        self.singleFileProgress = ProgressIndicator("LocalThread-SingleFile")
+        # self.stepProgress.connect(self.progressUpdated, noArgs=True)
+        # self.stepDetailProgress.connect(self.progressUpdated, noArgs=True)
+        # self.singleFileProgress.connect(self.progressUpdated, noArgs=True)
 
     @property
     def threadId(self):
@@ -370,6 +389,15 @@ class LocalThread:
                 os.makedirs(os.path.join(self.storeDir, dirName), exist_ok=True)
         self.storeOptions = {**self.storeOptions, **overwriteOptions}
 
+    # def progressUpdated(self, step=None, stepDetail=None, singleFile=None):
+    #     ret = (
+    #         step or self.stepProgress,
+    #         stepDetail or self.stepDetailProgress,
+    #         singleFile or self.singleFileProgress,
+    #     )
+    #     self.progressUpdatedSignal.emit(ret)
+    #     return ret
+
     def _fillLocalData(self):
         def loadLocalJson(file):
             with open(os.path.join(self.storeDir, file), "r", encoding="utf-8") as f:
@@ -392,37 +420,44 @@ class LocalThread:
             raise self.LocalThreadInvalidError() from e
 
     def _fillRemoteData(self):
-        self.remoteThread = RemoteThread(self.newThreadId or self.threadInfo.get("id"), self.storeOptions["lzOnly"])
-        return self.remoteThread
+        self.stepDetailProgress.inherit(self.remoteThread.pageProgress)
+        self.singleFileProgress.inherit(self.remoteThread.postProgress)
+        self.remoteThread.requestData()
+        self.stepDetailProgress.disinherit()
+        self.singleFileProgress.disinherit()
 
-    def requestWithRetry(self, src, max_retry: int = 3):
+    def _requestAsset(self, filepath, src, max_retry: int = 3):
         for count in range(max_retry):
             try:
-                result = requests.get(src)
+                with open(filepath, "wb") as f:
+                    req = requests.get(src, stream=True)
+                    if totalSize := req.headers.get("Content-Length"):
+                        self.singleFileProgress.updateProgress(0, totalSize)
+                    for part in req.iter_content(chunk_size=512):
+                        size = f.write(part)
+                        self.singleFileProgress.updateProgress(size if totalSize else 0)
             except (requests.ConnectTimeout, requests.ReadTimeout) as e:
                 if count + 1 == max_retry:
                     raise e
                 else:
                     logger.warning(f"request to {src} failed due to {str(e)}, retry count {count + 1}/{max_retry}")
-            else:
-                return result
 
     def _storeAssets(self, assets=None):
         for assetObj in assets:
             assetSortedDir = os.path.join(self.assetDir, assetObj["type"])
             os.makedirs(assetSortedDir, exist_ok=True)
 
-            with open(os.path.join(assetSortedDir, assetObj["filename"]), "wb") as f:
-                self.__log(f"正在保存资源 {assetObj['filename']}")
-                f.write(self.requestWithRetry(assetObj["src"]).content)
+            self.__log(f"正在保存资源 {assetObj['filename']}")
+            self.singleFileProgress.updateText(assetObj['filename'])
+            self._requestAsset(os.path.join(assetSortedDir, assetObj["filename"]), assetObj["src"])
             yield assetObj
 
     def _storePortraits(self, portraits: list = None):
         for portrait in portraits:
             portraitFilename = os.path.join(self.portraitDir, f'{portrait["id"]}.jpg')
             self.__log(f'正在保存头像 {portrait["portrait"]}(ID {portrait["id"]})')
-            with open(portraitFilename, "wb") as f:
-                f.write(self.requestWithRetry(portrait["src"]).content)
+            self.singleFileProgress.updateText(portrait["id"])
+            self._requestAsset(portraitFilename, portrait["src"])
             yield portrait
 
     def _storeOrigData(self, timestamp):
@@ -432,40 +467,50 @@ class LocalThread:
             "w",
             encoding="utf-8",
         ) as f:
-            json.dump(self.origData, f, ensure_ascii=False, indent=2)
+            json.dump({"__storeTimestamp": timestamp, **self.origData}, f, ensure_ascii=False, indent=2)
 
     def _writeDataToFile(self):
-        def _writeJson(filename, data):
+        __len = 4 + int(self.storeOptions["assets"]) + int(self.storeOptions["portraits"])
+        self.stepDetailProgress.updateProgress(0, __len)
+        __progress = 0
+
+        def __saveData(filename, data):
             with open(os.path.join(self.storeDir, filename), "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
+            nonlocal __progress
+            __progress += 1
+            self.stepDetailProgress.updateProgress(__progress)
 
         self._storeOrigData(self.remoteThread.dataRequestTime)
+        __progress += 1
+        self.stepDetailProgress.updateProgress(__progress)
         threadInfo = {
             **self.threadInfo,
             "storeOptions": self.storeOptions,
             "updateInfo": self.updateInfo,
         }
-        _writeJson("threadInfo.json", threadInfo)
-        _writeJson("posts.json", self.posts)
-        _writeJson("users.json", self.users)
+        __saveData("threadInfo.json", threadInfo)
+        __saveData("posts.json", self.posts)
+        __saveData("users.json", self.users)
         if self.storeOptions["assets"]:
-            _writeJson("assets.json", self.assets)
+            __saveData("assets.json", self.assets)
         if self.storeOptions["portraits"]:
-            _writeJson("portraits.json", self.portraits)
+            __saveData("portraits.json", self.portraits)
 
     def _store(self):
-        # yield(step, [progress, totalProgress], extraData)
+        # yield((step, totalStep), (progress, totalProgress), (singleFileProgress, singleFileTotalProgress)), extraData)
         self.__log(f"开始存档 {self.threadId}", logging.INFO)
 
-        yield (0, [0, -1], None)
+        self.stepProgress.updateProgress(0, 5)
         _data = {
             "update": {"posts": None, "assets": None, "portraits": None},
             "download": {"assets": [], "portraits": []},
         }
-        yield (0, [0, -1], self._fillRemoteData())
+        self._fillRemoteData()
+        self.stepProgress.updateProgress(1)
         os.makedirs(self.storeDir, exist_ok=True)
 
-        yield (1, [0, 1], None)
+        self.stepDetailProgress.updateProgress(0, 1)
         # Analyze & update data
         self.threadInfo = self.remoteThread.getThreadInfo()
         self.users = self.remoteThread.getFullUsersById()
@@ -489,34 +534,36 @@ class LocalThread:
                 self.portraits = self.remoteThread.getFullPortraits()
                 _data["download"]["portraits"] = self.portraits
             self.updateInfo["storeTime"] = self.remoteThread.dataRequestTime
-        yield (1, [1, 1], _data)
+        self.stepProgress.updateProgress(2)
+        self.stepDetailProgress.updateProgress(1)
 
         # Download data
         #  Caculate total number
         __len = len(_data["download"]["assets"]) + len(_data["download"]["portraits"])
         __progress = 0
 
-        yield (2, [0, __len or 1], None)
+        self.stepDetailProgress.updateProgress(__len or 1)
         #  Download & yield progress
         if __len:
             if _data["download"]["assets"]:
                 for _ in self._storeAssets(_data["download"]["assets"]):
                     __progress += 1
-                    yield (2, [__progress, __len], _)
+                    self.stepDetailProgress.updateProgress(__progress)
             if _data["download"]["portraits"]:
                 for _ in self._storePortraits(_data["download"]["portraits"]):
                     __progress += 1
-                    yield (2, [__progress, __len], _)
+                    self.stepDetailProgress.updateProgress(__progress)
         else:
-            yield (2, [1, 1], None)
+            self.stepDetailProgress.updateProgress(1)
+        self.stepProgress.updateProgress(3)
 
         # Writing data to files
-        yield (3, [0, 1], None)
         self._writeDataToFile()
+        self.stepProgress.updateProgress(4)
         self.__checkValid()
         self._fillLocalData()
-        yield (3, [1, 1], None)
         self.__log("存档完成！", logging.INFO)
+        self.stepProgress.updateProgress(5)
 
     def _updatePosts(self, _new: list = None, _old: list = None) -> list:
         # WARNING: NOT TESTED

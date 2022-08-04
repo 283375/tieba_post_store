@@ -10,34 +10,40 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QSizePolicy,
 )
-from PySide6.QtCore import Qt, QThread, Signal, Slot
+from PySide6.QtCore import Qt, QObject, QThread, Signal, Slot
 
 from api.thread import LocalThread
+from utils.progressIndicator import Progress
 from ._vars import app, signals
 
 logger = logging.getLogger("main")
 
 
 class StoreThreadThread(QThread):
-    actionUpdate = Signal(tuple)
     exceptionOccured = Signal(Exception)
     actionFinal = Signal()
+
+    progressUpdatedSignal = Signal(Progress)
 
     def __init__(self, parent=None):
         super(StoreThreadThread, self).__init__(parent)
         self.localThread = None
 
+    def progressUpdated(self, progress):
+        self.progressUpdatedSignal.emit(progress)
+
     def setLocalThread(self, t: LocalThread):
         self.localThread = t
+        self.localThread.stepProgress.connect(self.progressUpdated)
+        self.localThread.stepDetailProgress.connect(self.progressUpdated)
+        self.localThread.singleFileProgress.connect(self.progressUpdated)
 
     def run(self):
         try:
-            _generator = self.localThread._store()
-            for action in _generator:
-                self.actionUpdate.emit(action)
+            self.localThread._store()
         except Exception as e:
             self.exceptionOccured.emit(e)
-        finally:
+        else:
             self.actionFinal.emit()
 
 
@@ -47,13 +53,10 @@ class StoreThread(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.localThread = None
-        self.totalStep = 4
-        self.step = -1
-        self.labels = ["请求最新最热数据", "分析最新最热数据", "下载资源文件", "保存最新最热数据"]
 
-        self.progressBar = QProgressBar()
-        self.progressBar.setMinimum(0)
-        self.progressBar.setAlignment(Qt.AlignVCenter)
+        self.stepProgressBar = QProgressBar()
+        self.stepDetailProgressBar = QProgressBar()
+        self.singleFileProgressBar = QProgressBar()
         self.label = QLabel("")
         self.labelSizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         self.labelSizePolicy.setHorizontalStretch(1)
@@ -65,11 +68,13 @@ class StoreThread(QWidget):
         self.lowerWrapper.addWidget(self.pushButton)
         self.lowerWrapper.addWidget(self.label)
         self.layout = QVBoxLayout(self)
-        self.layout.addWidget(self.progressBar)
+        self.layout.addWidget(self.stepProgressBar)
+        self.layout.addWidget(self.stepDetailProgressBar)
+        self.layout.addWidget(self.singleFileProgressBar)
         self.layout.addLayout(self.lowerWrapper)
 
         self._thread = StoreThreadThread()
-        self._thread.actionUpdate.connect(self.storeActionUpdate)
+        self._thread.progressUpdatedSignal.connect(self.progressUpdated)
         self._thread.exceptionOccured.connect(self.storeExceptionOccured)
         self._thread.actionFinal.connect(self.storeFinal)
 
@@ -79,45 +84,42 @@ class StoreThread(QWidget):
         self._thread.setLocalThread(t)
         self.pushButton.setText("更新" if t.isValid else "存档")
 
+    def __updateProgressBar(self, progressBar: QProgressBar, progress: Progress):
+        if progressBar.minimum() != 0:
+            progressBar.setMinimum(0)
+        if progressBar.maximum() != progress.totalProgress:
+            progressBar.setMaximum(progress.totalProgress)
+        progressBar.setFormat(f"{progress.title} - {progress.text}: %p%")
+        progressBar.setValue(progress.progress)
+        app.processEvents()
+
+    @Slot(Progress)
+    def progressUpdated(self, p: Progress):
+        if p.id in ["LocalThread-Step"]:
+            self.__updateProgressBar(self.stepProgressBar, p)
+        elif p.id in ["RemoteThread-Page", "LocalThread-StepDetail"]:
+            self.__updateProgressBar(self.stepDetailProgressBar, p)
+        elif p.id in ["RemoteThread-Post", "LocalThread-SingleFile"]:
+            self.__updateProgressBar(self.singleFileProgressBar, p)
+        else:
+            logger.warning(f"Unknown progress id {p.id}")
+
     @Slot()
     def storeStart(self, *args):
         self.pushButton.setEnabled(False)
         self._thread.start()
 
-    @Slot(tuple)
-    def storeActionUpdate(self, action: tuple):
-        newStep = action[0]
-        newProgress = action[1][0]
-        newTotalProgress = action[1][1]
-        if newStep > self.step:
-            self.step = newStep
-            if newTotalProgress < 0:
-                self.progressBar.setMinimum(0)
-                self.progressBar.setMaximum(0)
-            else:
-                self.progressBar.setMaximum(newTotalProgress)
-                self.progressBar.setValue(newProgress)
-        else:
-            self.progressBar.setValue(newProgress)
-        self.label.setText(
-            f"{self.step} / {self.totalStep - 1} - 正在{self.labels[self.step]} ({newProgress}/{newTotalProgress})"
-        )
-        app.processEvents()
-
     @Slot(Exception)
     def storeExceptionOccured(self, e: Exception):
-        logger.error(
-            f"{self.__class__.__name__}: Store {self.localThread.threadId} failed due to: {str(e)}"
-        )
-        errorText = "出现意外错误"
-        if type(e) in (ConnectTimeout, ReadTimeout):
-            errorText = "网络超时"
+        logger.error(f"{self.__class__.__name__}: Store {self.localThread.threadId} failed due to: {str(e)}")
+
+        errorText = "网络超时" if type(e) in (ConnectTimeout, ReadTimeout) else "出现意外错误"
         QMessageBox.critical(self, "错误", f"{errorText}，存档失败。详细信息:\n{str(e)}")
+        self.storeFinal(exception=True)
 
     @Slot()
-    def storeFinal(self):
-        self.label.setText("存档完成！")
+    def storeFinal(self, exception: bool = False):
+        self.label.setText("异常终止。" if exception else "存档完成！")
         self.storeComplete.emit()
         signals.refreshWorkDirectory.emit()
-        self.step = -1
         self.pushButton.setEnabled(True)
