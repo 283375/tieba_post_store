@@ -8,10 +8,72 @@ from urllib.parse import urlparse
 from functools import wraps
 
 from api.tiebaApi import getThread, getSubPost
-from utils.simpleSignal import SimpleSignal
-from utils.progressIndicator import ProgressIndicator
+from utils.progress import Progress, ProgressType
 
 logger = logging.getLogger("main")
+
+
+class TiebaAsset:
+    Image = 0
+    Video = 1
+    Audio = 2
+    Portrait = 3
+    __types = ["image", "video", "audio", "portrait"]
+
+    def getRoleName(self):
+        return self.__types[self.type]
+
+    def loadFromApiResult(self, type: int, src: str, filename: str, **kwargs):
+        """
+        General { src: 资源 URL 地址, filename: 资源文件名 }
+        Image { id: 图片 ID, size: 图片文件大小 }
+        Video { size: 视频文件大小 }
+        Audio { md5: 音频 MD5 值 }
+        Portrait { id: 用户 ID, portrait: 用户 portrait }
+        """
+        self.type = type
+        self.src = src
+        self.filename = filename
+        self.__kwargs = kwargs.copy()
+        return self
+
+    def loadFromDict(self, _dict: dict):
+        __dict = _dict.copy()
+        self.type = self.__types.index(__dict.pop("type"))
+        self.src = __dict.pop("src")
+        self.filename = __dict.pop("filename")
+        self.__kwargs = __dict
+        return self
+
+    def get(self, key: str):
+        return self.__kwargs.get(key)
+
+    def toDict(self):
+        basic = {"type": self.getRoleName(), "src": self.src, "filename": self.filename}
+        kwargs = self.__kwargs
+        if self.type == self.Image:
+            basic |= {"id": kwargs["id"], "size": kwargs["size"]}
+        elif self.type == self.Video:
+            basic |= {"size": kwargs["size"]}
+        elif self.type == self.Audio:
+            basic |= {"md5": kwargs["md5"]}
+        elif self.type == self.Portrait:
+            basic |= {"id": kwargs["id"], "portrait": kwargs["portrait"]}
+        return basic
+
+    def __uniqueKey(self):
+        key = 0
+        if self.type in [self.Image, self.Portrait]:
+            key = self.__kwargs["id"]
+        elif self.type == self.Audio:
+            key = self.__kwargs["md5"]
+        return (self.type, self.src, self.filename, key)
+
+    def __hash__(self):
+        return hash(self.__uniqueKey())
+
+    def __eq__(self, other):
+        return self.__uniqueKey() == other.__uniqueKey()
 
 
 class LightRemoteThread:
@@ -87,16 +149,13 @@ class RemoteThread(LightRemoteThread):
         self.dataRequestTime = None
         if not lazyRequest:
             self.requestData(self.lzOnly)
-        
-        self.pageProgress = ProgressIndicator("RemoteThread-Page", "页面")
-        self.postProgress = ProgressIndicator("RemoteThread-Post", "回复贴")
 
     @property
     def totalPageRange(self):
         if self.totalPage:
             return range(1, self.totalPage + 1)
 
-    def requestData(self, _lzOnly: bool = None):
+    def _requestData(self, _lzOnly: bool = None):
         lzOnly = _lzOnly if _lzOnly is not None else self.lzOnly
         logger.debug(f"{self.threadId} preRequest")
         preRequest = getThread(self.threadId, page=1, lzOnly=lzOnly)
@@ -106,11 +165,15 @@ class RemoteThread(LightRemoteThread):
         self.dataRequestTime = int(time.time() * 1000)
         self.totalPage = int(preRequest["page"]["total_page"])
 
-        self.pageProgress.updateProgress(0, self.totalPage)
+        pageProgress = Progress("RemoteThread-Page", "页面", "正在更新页面")
+        postProgress = Progress("RemoteThread-Post", "回复贴")
+
+        yield pageProgress._updateProgress(0, self.totalPage)
         for page in self.totalPageRange:
             thread = getThread(self.threadId, page=page, lzOnly=lzOnly)
-            self.postProgress.updateProgress(0, len(thread["post_list"]))
+            yield postProgress._updateProgress(0, len(thread["post_list"]))
             for i, post in enumerate(thread["post_list"]):
+                yield postProgress._updateText(str(post["id"]))
                 subpostNum = int(post["sub_post_number"])
                 if subpostNum > 0:
                     subposts = []
@@ -122,11 +185,15 @@ class RemoteThread(LightRemoteThread):
                         for _page in pages:
                             subposts += getSubPost(self.threadId, post["id"], page=_page)["subpost_list"]
                     post["sub_post_list"] = subposts
-                self.postProgress.updateProgress(i)
-            self.pageProgress.updateProgress(page)
+                yield postProgress._updateProgress(i + 1)
+            yield pageProgress._updateProgress(page)
 
             self.origData[f"page_{page}"] = thread
         self.dataRequested = True
+
+    def requestData(self):
+        for _ in self._requestData():
+            _
 
     def DataRequested(func):
         @wraps(func)
@@ -184,37 +251,33 @@ class RemoteThread(LightRemoteThread):
             contentType = contentBlock["type"]
             if contentType == "3":  # image
                 assets.append(
-                    {
-                        "type": "image",
-                        "src": contentBlock["origin_src"],
-                        "id": contentBlock["pic_id"],
-                        "size": contentBlock["size"],
-                        "filename": f'{contentBlock["pic_id"]}{os.path.splitext(os.path.basename(urlparse(contentBlock["origin_src"]).path))[1]}',
-                    }
+                    TiebaAsset().loadFromApiResult(
+                        type=TiebaAsset.Image,
+                        src=contentBlock["origin_src"],
+                        filename=f'{contentBlock["pic_id"]}{os.path.splitext(os.path.basename(urlparse(contentBlock["origin_src"]).path))[1]}',
+                        id=contentBlock["pic_id"],
+                        size=contentBlock["size"],
+                    )
                 )
-
             elif contentType == "5":  # video
                 assets.append(
-                    {
-                        "type": "video",
-                        "src": contentBlock["link"],
-                        "size": contentBlock["origin_size"],
-                        "filename": os.path.basename(urlparse(contentBlock["link"]).path),
-                    }
+                    TiebaAsset().loadFromApiResult(
+                        type=TiebaAsset.Video,
+                        src=contentBlock["link"],
+                        filename=os.path.basename(urlparse(contentBlock["link"]).path),
+                        size=contentBlock["origin_size"],
+                    )
                 )
             elif contentType == "10":  # audio
                 assets.append(
-                    {
-                        "type": "audio",
-                        "md5": contentBlock["voice_md5"],
-                        "src": f'http://c.tieba.baidu.com/c/p/voice?voice_md5={contentBlock["voice_md5"]}&play_from=pb_voice_play',
-                        "filename": f'{contentBlock["voice_md5"]}.mp3',
-                    }
+                    TiebaAsset().loadFromApiResult(
+                        type=TiebaAsset.Audio,
+                        src=f'http://c.tieba.baidu.com/c/p/voice?voice_md5={contentBlock["voice_md5"]}&play_from=pb_voice_play',
+                        filename=f'{contentBlock["voice_md5"]}.mp3',
+                        md5=contentBlock["voice_md5"],
+                    )
                 )
-            """
-            elif contentType == "20":  # [?] maybe memePic
-                imageList.append(content)
-            """
+
         return assets
 
     @DataRequested
@@ -267,11 +330,13 @@ class RemoteThread(LightRemoteThread):
     def getPortraits(self, page=1):
         users = self.getUsers(page)
         return [
-            {
-                "id": user["id"],
-                "portrait": user["portrait"],
-                "src": "http://tb.himg.baidu.com/sys/portrait/item/" + user["portrait"],
-            }
+            TiebaAsset().loadFromApiResult(
+                type=TiebaAsset.Portrait,
+                src=f'http://tb.himg.baidu.com/sys/portrait/item/{user["portrait"]}',
+                filename=f'{user["id"]}.jpg',
+                portrait=user["portrait"],
+                id=user["id"],
+            )
             for user in users
         ]
 
@@ -340,14 +405,6 @@ class LocalThread:
             self._fillLocalData()
         self.remoteThread = RemoteThread(self.threadId, self.storeOptions["lzOnly"], lazyRequest=True)
 
-        # self.progressUpdatedSignal = SimpleSignal()
-        self.stepProgress = ProgressIndicator("LocalThread-Step")
-        self.stepDetailProgress = ProgressIndicator("LocalThread-StepDetail")
-        self.singleFileProgress = ProgressIndicator("LocalThread-SingleFile")
-        # self.stepProgress.connect(self.progressUpdated, noArgs=True)
-        # self.stepDetailProgress.connect(self.progressUpdated, noArgs=True)
-        # self.singleFileProgress.connect(self.progressUpdated, noArgs=True)
-
     @property
     def threadId(self):
         return (self.threadInfo and self.threadInfo.get("id")) or self.newThreadId
@@ -389,15 +446,6 @@ class LocalThread:
                 os.makedirs(os.path.join(self.storeDir, dirName), exist_ok=True)
         self.storeOptions = {**self.storeOptions, **overwriteOptions}
 
-    # def progressUpdated(self, step=None, stepDetail=None, singleFile=None):
-    #     ret = (
-    #         step or self.stepProgress,
-    #         stepDetail or self.stepDetailProgress,
-    #         singleFile or self.singleFileProgress,
-    #     )
-    #     self.progressUpdatedSignal.emit(ret)
-    #     return ret
-
     def _fillLocalData(self):
         def loadLocalJson(file):
             with open(os.path.join(self.storeDir, file), "r", encoding="utf-8") as f:
@@ -413,52 +461,46 @@ class LocalThread:
             self.users = loadLocalJson("users.json")
 
             if self.storeOptions["assets"]:
-                self.assets = loadLocalJson("assets.json")
+                self.assets = [TiebaAsset().loadFromDict(_dict) for _dict in loadLocalJson("assets.json")]
             if self.storeOptions["portraits"]:
-                self.portraits = loadLocalJson("portraits.json")
+                self.portraits = [TiebaAsset().loadFromDict(_dict) for _dict in loadLocalJson("portraits.json")]
         except FileNotFoundError as e:
             raise self.LocalThreadInvalidError() from e
 
     def _fillRemoteData(self):
-        self.stepDetailProgress.inherit(self.remoteThread.pageProgress)
-        self.singleFileProgress.inherit(self.remoteThread.postProgress)
-        self.remoteThread.requestData()
-        self.stepDetailProgress.disinherit()
-        self.singleFileProgress.disinherit()
+        yield from self.remoteThread._requestData()
 
-    def _requestAsset(self, filepath, src, max_retry: int = 3):
+    def _requestAsset(self, filepath, src, progressText=None, max_retry: int = 3):
         for count in range(max_retry):
             try:
                 with open(filepath, "wb") as f:
                     req = requests.get(src, stream=True)
-                    if totalSize := req.headers.get("Content-Length"):
-                        self.singleFileProgress.updateProgress(0, totalSize)
+                    progress = Progress("LocalThread-DownloadAsset", type=ProgressType.Byte)
+                    totalSize = int(req.headers.get("Content-Length", 0))
+                    progress.update(0, totalSize, progressText)
                     for part in req.iter_content(chunk_size=512):
                         size = f.write(part)
-                        self.singleFileProgress.updateProgress(size if totalSize else 0)
+                        yield progress.increase(size if totalSize else 0)
             except (requests.ConnectTimeout, requests.ReadTimeout) as e:
                 if count + 1 == max_retry:
                     raise e
                 else:
                     logger.warning(f"request to {src} failed due to {str(e)}, retry count {count + 1}/{max_retry}")
 
-    def _storeAssets(self, assets=None):
+    def _storeAssets(self, assets: list[TiebaAsset] = None):
         for assetObj in assets:
-            assetSortedDir = os.path.join(self.assetDir, assetObj["type"])
+            assetSortedDir = os.path.join(self.assetDir, assetObj.getRoleName())
             os.makedirs(assetSortedDir, exist_ok=True)
 
-            self.__log(f"正在保存资源 {assetObj['filename']}")
-            self.singleFileProgress.updateText(assetObj['filename'])
-            self._requestAsset(os.path.join(assetSortedDir, assetObj["filename"]), assetObj["src"])
-            yield assetObj
+            self.__log(f"正在保存资源 {assetObj.filename}")
+            yield from self._requestAsset(
+                os.path.join(assetSortedDir, assetObj.filename), assetObj.src, assetObj.filename
+            )
 
-    def _storePortraits(self, portraits: list = None):
+    def _storePortraits(self, portraits: list[TiebaAsset] = None):
         for portrait in portraits:
-            portraitFilename = os.path.join(self.portraitDir, f'{portrait["id"]}.jpg')
-            self.__log(f'正在保存头像 {portrait["portrait"]}(ID {portrait["id"]})')
-            self.singleFileProgress.updateText(portrait["id"])
-            self._requestAsset(portraitFilename, portrait["src"])
-            yield portrait
+            self.__log(f'正在保存头像 {portrait.get("portrait")}(ID {portrait.get("id")})')
+            yield from self._requestAsset(portrait.filename, portrait.src, portrait.get("id"))
 
     def _storeOrigData(self, timestamp):
         os.makedirs(os.path.join(self.storeDir, "origData"), exist_ok=True)
@@ -471,46 +513,48 @@ class LocalThread:
 
     def _writeDataToFile(self):
         __len = 4 + int(self.storeOptions["assets"]) + int(self.storeOptions["portraits"])
-        self.stepDetailProgress.updateProgress(0, __len)
-        __progress = 0
+        __progress = Progress("LocalThread-WriteData", "保存数据")
+        yield __progress.update(tp=__len)
 
         def __saveData(filename, data):
+            nonlocal __progress
+            __progress.update(text=filename)
             with open(os.path.join(self.storeDir, filename), "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
-            nonlocal __progress
-            __progress += 1
-            self.stepDetailProgress.updateProgress(__progress)
+            return __progress.increase()
 
         self._storeOrigData(self.remoteThread.dataRequestTime)
-        __progress += 1
-        self.stepDetailProgress.updateProgress(__progress)
+        yield __progress.increase()
         threadInfo = {
             **self.threadInfo,
             "storeOptions": self.storeOptions,
             "updateInfo": self.updateInfo,
         }
-        __saveData("threadInfo.json", threadInfo)
-        __saveData("posts.json", self.posts)
-        __saveData("users.json", self.users)
+        yield __saveData("threadInfo.json", threadInfo)
+        yield __saveData("posts.json", self.posts)
+        yield __saveData("users.json", self.users)
         if self.storeOptions["assets"]:
-            __saveData("assets.json", self.assets)
+            yield __saveData("assets.json", [_.toDict() for _ in self.assets])
         if self.storeOptions["portraits"]:
-            __saveData("portraits.json", self.portraits)
+            yield __saveData("portraits.json", [_.toDict() for _ in self.portraits])
 
     def _store(self):
-        # yield((step, totalStep), (progress, totalProgress), (singleFileProgress, singleFileTotalProgress)), extraData)
+        # yield Progress(...)
         self.__log(f"开始存档 {self.threadId}", logging.INFO)
 
-        self.stepProgress.updateProgress(0, 5)
+        stepProgress = Progress("LocalThread-Step", "步骤")
+        stepProgress.update(tp=5)
+        detailProgress = Progress("LocalThread-Detail", "详情")
+
+        stepProgress.update(text="正在请求最新数据")
         _data = {
             "update": {"posts": None, "assets": None, "portraits": None},
             "download": {"assets": [], "portraits": []},
         }
-        self._fillRemoteData()
-        self.stepProgress.updateProgress(1)
+        yield from self._fillRemoteData()
+        yield stepProgress.increase()
         os.makedirs(self.storeDir, exist_ok=True)
 
-        self.stepDetailProgress.updateProgress(0, 1)
         # Analyze & update data
         self.threadInfo = self.remoteThread.getThreadInfo()
         self.users = self.remoteThread.getFullUsersById()
@@ -534,36 +578,30 @@ class LocalThread:
                 self.portraits = self.remoteThread.getFullPortraits()
                 _data["download"]["portraits"] = self.portraits
             self.updateInfo["storeTime"] = self.remoteThread.dataRequestTime
-        self.stepProgress.updateProgress(2)
-        self.stepDetailProgress.updateProgress(1)
+        yield stepProgress.increase()
 
         # Download data
         #  Caculate total number
         __len = len(_data["download"]["assets"]) + len(_data["download"]["portraits"])
-        __progress = 0
+        yield detailProgress.update(0, __len or 1, "下载资源")
 
-        self.stepDetailProgress.updateProgress(__len or 1)
         #  Download & yield progress
         if __len:
             if _data["download"]["assets"]:
-                for _ in self._storeAssets(_data["download"]["assets"]):
-                    __progress += 1
-                    self.stepDetailProgress.updateProgress(__progress)
+                yield from self._storeAssets(_data["download"]["assets"])
             if _data["download"]["portraits"]:
-                for _ in self._storePortraits(_data["download"]["portraits"]):
-                    __progress += 1
-                    self.stepDetailProgress.updateProgress(__progress)
+                yield from self._storePortraits(_data["download"]["portraits"])
         else:
-            self.stepDetailProgress.updateProgress(1)
-        self.stepProgress.updateProgress(3)
+            yield detailProgress.increase()
+        yield stepProgress.increase()
 
         # Writing data to files
-        self._writeDataToFile()
-        self.stepProgress.updateProgress(4)
+        yield from self._writeDataToFile()
+        yield stepProgress.increase()
         self.__checkValid()
         self._fillLocalData()
         self.__log("存档完成！", logging.INFO)
-        self.stepProgress.updateProgress(5)
+        yield stepProgress.increase()
 
     def _updatePosts(self, _new: list = None, _old: list = None) -> list:
         # WARNING: NOT TESTED
@@ -618,8 +656,7 @@ class LocalThread:
             combinedAssets = newAssets + oldAssets
             duplicatedAssets = list(set(combinedAssets))
             downloadAssets = [assetObj for assetObj in combinedAssets if assetObj not in duplicatedAssets]
-            __sort_order = lambda x: {"image": 1, "video": 2, "audio": 3}[x["type"]]
-            self.assets = sorted(combinedAssets, key=__sort_order)
+            self.assets = combinedAssets
 
         return downloadAssets
 
@@ -627,8 +664,8 @@ class LocalThread:
         newPortraits = _new or self.remoteThread.getFullPortraits() or {}
         oldPortraits = _old or self.portraits or {}
         # WARNING: NOT TESTED
-        oldPortraitsById = {portrait["id"]: portrait for portrait in oldPortraits}
-        newPortraitsById = {portrait["id"]: portrait for portrait in newPortraits}
+        oldPortraitsById = {portrait.get("id"): portrait for portrait in oldPortraits}
+        newPortraitsById = {portrait.get("id"): portrait for portrait in newPortraits}
 
         downloadPortraits = [
             newPortraitValue

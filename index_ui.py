@@ -15,6 +15,12 @@ from ui import LogWindow, ThreadInfo, ThreadList, NewThread, WorkDirectory, _var
 logger = logging.getLogger("main")
 logger.setLevel(logging.DEBUG)
 
+# fmt: off
+import time
+debugFileHandler = logging.FileHandler(f"./__debug/logs/{time.strftime('%Y-%m-%d %H-%M-%S', time.localtime())}.log", encoding="utf-8")
+debugFileHandler.setFormatter(logging.Formatter("[%(asctime)s][%(levelno)s:%(levelname)s][%(funcName)s() in %(module)s>> %(message)s", "%Y-%m-%d %H:%M:%S"))
+logger.addHandler(debugFileHandler)
+# fmt: on
 
 if __name__ == "__main__":
     app = _vars.app
