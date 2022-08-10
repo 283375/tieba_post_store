@@ -11,7 +11,7 @@ from utils.generateCUID import generateFinalCUID
 # Most methods are ported from [TiebaLite](https://github.com/HuanCheng65/TiebaLite).
 # Great thanks to [HuanCheng65](https://github.com/HuanCheng65) and other contributors to the project.
 
-logger = logging.getLogger("root")
+logger = logging.getLogger("root.api.tiebaApi")
 
 
 def getDefaultParams(type: str):
@@ -121,9 +121,7 @@ def RetryWhenFail(func):
                 result = func(*args, **kwargs)
             except (requests.ConnectTimeout, requests.ReadTimeout) as e:
                 if count + 1 < MAX_RETRY:
-                    _args = ", ".join([str(_) for _ in args])
-                    _kwargs = ", ".join([f"{k}={str(v)}" for k, v in kwargs.items()])
-                    logger.warning(f"{func.__name__}({_args},{_kwargs}) has retried {count + 1} times due to {str(e)}")
+                    logger.warning(f"(重试 {count + 1} 次) {func.__name__}: {e}")
                 else:
                     logger.error(e)
                     raise e
@@ -160,7 +158,7 @@ def officialApi(suffix, _params, _headers=None):
 
 
 def getThread(threadId, page, lzOnly: bool = False):
-    logger.debug(f"getThread {threadId}")
+    logger.debug(f"getThread {threadId}->P{page}")
     reqParams = {
         "kz": str(threadId),
         "pn": str(page),
@@ -182,7 +180,7 @@ def getThread(threadId, page, lzOnly: bool = False):
 
 
 def getSubPost(threadId, postId, spid: int = 0, page: int = 1, rn: int = 30):
-    logger.debug(f"getSubPost {threadId}->{postId}")
+    logger.debug(f"getSubPost {threadId}->{postId}->P{page}")
     reqParams = {
         "kz": str(threadId),
         "pn": page,
