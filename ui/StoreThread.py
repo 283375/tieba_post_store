@@ -53,10 +53,10 @@ class StoreThread(QWidget):
         self.localThread = None
 
         self.stepProgressBar = QProgressBar()
-        self.stepDetailProgressBar = QProgressBar()
+        self.detailProgressBar = QProgressBar()
         self.singleFileProgressBar = QProgressBar()
         self.stepProgressBar.setAlignment(Qt.AlignVCenter)
-        self.stepDetailProgressBar.setAlignment(Qt.AlignVCenter)
+        self.detailProgressBar.setAlignment(Qt.AlignVCenter)
         self.singleFileProgressBar.setAlignment(Qt.AlignVCenter)
         self.label = QLabel("")
         self.labelSizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
@@ -74,7 +74,7 @@ class StoreThread(QWidget):
         self.lowerWrapper.addWidget(self.label)
         self.layout = QVBoxLayout(self)
         self.layout.addWidget(self.stepProgressBar)
-        self.layout.addWidget(self.stepDetailProgressBar)
+        self.layout.addWidget(self.detailProgressBar)
         self.layout.addWidget(self.singleFileProgressBar)
         self.layout.addLayout(self.lowerWrapper)
 
@@ -102,7 +102,7 @@ class StoreThread(QWidget):
         if p.id in ["LocalThread-Step"]:
             self.__updateProgressBar(self.stepProgressBar, p)
         elif p.id in ["RemoteThread-Page", "LocalThread-Detail"]:
-            self.__updateProgressBar(self.stepDetailProgressBar, p)
+            self.__updateProgressBar(self.detailProgressBar, p)
         elif p.id in ["RemoteThread-Post", "LocalThread-DownloadAsset"]:
             self.__updateProgressBar(self.singleFileProgressBar, p)
         else:
@@ -134,11 +134,18 @@ class StoreThread(QWidget):
         QMessageBox.critical(self, "错误", f"{errorText}，存档失败。详细信息:\n{str(e)}")
         self.storeFinal(exception=True)
 
+    def __resetProgressBar(self, progressBar: QProgressBar):
+        progressBar.reset()
+        progressBar.resetFormat()
+
     @Slot()
     def storeFinal(self, exception: bool = False):
         self.label.setText("异常终止。" if exception else "存档完成！")
         if self._thread.isRunning():
             self._thread.quit()
+        self.__resetProgressBar(self.stepProgressBar)
+        self.__resetProgressBar(self.detailProgressBar)
+        self.__resetProgressBar(self.singleFileProgressBar)
         self.storeComplete.emit()
         signals.refreshWorkDirectory.emit()
         self.storeStartButton.setEnabled(True)
