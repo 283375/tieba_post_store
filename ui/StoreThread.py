@@ -84,14 +84,18 @@ class StoreThread(QWidget):
         self.storeStartButton.setText("更新" if t.isValid else "存档")
 
     def __updateProgressBar(self, progressBar: QProgressBar, progress: Progress):
+        # self._thread.blockSignals(True)
         if progressBar.minimum() != 0:
             progressBar.setMinimum(0)
+            progressBar.setValue(0)
         if progressBar.maximum() != progress.totalProgress:
             progressBar.setMaximum(progress.totalProgress)
+            progressBar.setValue(0)
         progressBar.setFormat(progress.format())
         if progressBar.value() != progress.progress:
             progressBar.setValue(progress.progress)
         app.processEvents()
+        # self._thread.blockSignals(False)
 
     @Slot(Progress)
     def updateProgress(self, p: Progress):
@@ -109,7 +113,7 @@ class StoreThread(QWidget):
         self._thread = StoreThreadThread()
         self._thread.exceptionOccured.connect(self.storeExceptionOccured)
         self._thread.actionFinal.connect(self.storeFinal)
-        self._thread.progressUpdated.connect(self.updateProgress)
+        self._thread.progressUpdated.connect(self.updateProgress, Qt.BlockingQueuedConnection)
         self.storeStartButton.setEnabled(False)
         self.storeSuspendButton.setEnabled(True)
         self._thread.setLocalThread(self.localThread)
@@ -120,6 +124,9 @@ class StoreThread(QWidget):
 
     @Slot(Exception)
     def storeExceptionOccured(self, e: Exception):
+        self._thread.exceptionOccured.disconnect(self.storeExceptionOccured)
+        self._thread.actionFinal.disconnect(self.storeFinal)
+        self._thread.progressUpdated.disconnect(self.updateProgress)
         self._thread.terminate()
         logger.error(f"{self.__class__.__name__}: Store {self.localThread.threadId} failed due to: {str(e)}")
 
