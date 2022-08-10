@@ -5,7 +5,7 @@ import logging
 from PySide6.QtWidgets import QApplication, QStatusBar
 from PySide6.QtCore import QObject, QDir, Signal
 
-logger = logging.getLogger("main")
+logger = logging.getLogger("root")
 
 app = QApplication(sys.argv)
 statusBar = QStatusBar()

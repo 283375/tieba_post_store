@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (
 )
 from ._vars import workDirectoryInstance
 
-logger = logging.getLogger("main")
+logger = logging.getLogger("root")
 
 
 class ChangeWorkDirectory(QWidget):

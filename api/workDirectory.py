@@ -3,7 +3,7 @@ import logging
 
 from api.thread import LocalThread
 
-logger = logging.getLogger("main")
+logger = logging.getLogger("root")
 
 
 def scanDirectory(_rootPath: str) -> list:

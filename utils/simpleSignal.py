@@ -4,7 +4,7 @@ import logging
 from uuid import uuid4
 from typing import List, Dict, Callable
 
-logger = logging.getLogger("main")
+logger = logging.getLogger("root")
 
 class HandlerNotCallableError(Exception):
     def __init__(self, handler):

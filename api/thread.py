@@ -10,7 +10,7 @@ from functools import wraps
 from api.tiebaApi import getThread, getSubPost
 from utils.progress import Progress, ProgressType
 
-logger = logging.getLogger("main")
+logger = logging.getLogger("root")
 
 
 class TiebaAsset:

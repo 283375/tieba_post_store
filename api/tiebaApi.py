@@ -11,7 +11,7 @@ from utils.generateCUID import generateFinalCUID
 # Most methods are ported from [TiebaLite](https://github.com/HuanCheng65/TiebaLite).
 # Great thanks to [HuanCheng65](https://github.com/HuanCheng65) and other contributors to the project.
 
-logger = logging.getLogger("main")
+logger = logging.getLogger("root")
 
 
 def getDefaultParams(type: str):

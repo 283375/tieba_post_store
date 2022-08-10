@@ -16,7 +16,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QAbstractListModel, QModelIndex, QByteArray
 
 
-logger = logging.getLogger("main")
+logger = logging.getLogger("root")
 
 previewFormatter = logging.Formatter(
     "[%(asctime)s][%(levelname)s][%(funcName)s() in %(module)s>> %(message)s",
