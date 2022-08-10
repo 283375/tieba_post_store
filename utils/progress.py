@@ -1,5 +1,6 @@
 import logging
 from functools import wraps
+from typing import Callable
 from typing_extensions import Self
 from uuid import uuid4
 
@@ -31,7 +32,7 @@ class Progress:
         self.totalProgress = 0
         self.text = 0
         self.title = title
-        self.overrideFormat = None
+        self.overrideFormat: Callable[[Self], str] = None
 
     def __str__(self):
         return f'<Progress {str(self.__uuid)} {str(self.id)}> {f"{self.title} - {self.text}" if self.title else self.text}: {self.progress} / {self.totalProgress}'
@@ -79,11 +80,11 @@ class Progress:
         """
         __defaultFormat: Default formatter for current progress
         Will return something like
-        `<Progress YourProgressID> title - text: 52.37MB / 521.85MB (9.96%)`
+        `title - text: 52.37MB / 521.85MB (9.96%)`
 
         :rtype: str
         """
-        __str = f"<Progress {self.id or str(self.__uuid)}> "
+        __str = ""
         if self.title and self.text:
             __str += f"{self.title} - {self.text}: "
         elif self.title or self.text:

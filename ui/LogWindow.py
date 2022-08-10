@@ -1,3 +1,6 @@
+from typing import Union
+from PySide6.QtCore import QPersistentModelIndex
+
 import time
 import logging
 
@@ -10,10 +13,8 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QHBoxLayout,
 )
-from PySide6.QtCore import Qt, QAbstractListModel
+from PySide6.QtCore import Qt, QAbstractListModel, QModelIndex, QByteArray
 
-from typing import List, Dict, Union
-from PySide6.QtCore import QModelIndex, QPersistentModelIndex, QByteArray
 
 logger = logging.getLogger("main")
 
@@ -37,7 +38,7 @@ class LogRecordAbstractListModel(QAbstractListModel):
     def rowCount(self, parent=None) -> int:
         return len(self.__logRecordList)
 
-    def roleNames(self) -> Dict[int, QByteArray]:
+    def roleNames(self) -> dict[int, QByteArray]:
         return {**super().roleNames(), self.LogRecordRole: QByteArray(b"LogRecord")}
 
     def data(
@@ -95,7 +96,7 @@ class LogWindowWidget(QWidget):
         filename = f"tieba_post_store_{timeStr}.log"
         return self.fileDialog.getSaveFileName(self, "选择导出文件路径", filename)
 
-    def _writeLogToFile(self, filename, logs: List[logging.LogRecord]) -> None:
+    def _writeLogToFile(self, filename, logs: list[logging.LogRecord]) -> None:
         humanReadable = [saveFormatter.format(r) for r in logs]
         details = [str(r.__dict__) for r in logs]
 
