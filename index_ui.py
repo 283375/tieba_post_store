@@ -36,9 +36,9 @@ if __name__ == "__main__":
     _vars.signals.refreshWorkDirectory.connect(threadListWidget.refreshDirectory)
     threadListWidget.threadSelected.connect(threadInfoWidget.updateLocalThread)
 
-    class LogForwardHandler(logging.Handler):
+    class LogWindowForwardHandler(logging.Handler):
         def __init__(self, level=logging.DEBUG):
-            super().__init__(level)
+            super(LogWindowForwardHandler, self).__init__(level)
             self.formatter = logging.Formatter(
                 "[%(asctime)s][%(levelname)s]: %(message)s",
                 "%m-%d %H:%M:%S",
@@ -54,7 +54,7 @@ if __name__ == "__main__":
         def format(self, record) -> str:
             return self.formatter.format(record)
 
-    logger.addHandler(LogForwardHandler())
+    logger.addHandler(LogWindowForwardHandler())
 
     threadListWidget.setMaximumWidth(300)
     newThreadWidget.setMaximumWidth(200)

@@ -10,8 +10,6 @@ from functools import wraps
 from api.tiebaApi import getThread, getSubPost
 from utils.progress import Progress, ProgressType
 
-logger = logging.getLogger("root")
-
 
 class TiebaAsset:
     Image = 0
@@ -117,6 +115,8 @@ class LightRemoteThread:
 
 
 class RemoteThread(LightRemoteThread):
+    logger = logging.getLogger("root.api.RemoteThread")
+
     class DataNotRequestedError(Exception):
         def __init__(self):
             self.message = f"{self.__class__.__name__} 尚未请求数据，请先调用 requestData()。"
@@ -157,7 +157,7 @@ class RemoteThread(LightRemoteThread):
 
     def _requestData(self, _lzOnly: bool = None):
         lzOnly = _lzOnly if _lzOnly is not None else self.lzOnly
-        logger.debug(f"{self.threadId} preRequest")
+        self.logger.debug(f"处理 {self.threadId} 元数据")
         preRequest = getThread(self.threadId, page=1, lzOnly=lzOnly)
         if preRequest.get("page") is None:
             raise self.ThreadInvalidError(preRequest)
@@ -170,6 +170,7 @@ class RemoteThread(LightRemoteThread):
 
         yield pageProgress._updateProgress(0, self.totalPage)
         for page in self.totalPageRange:
+            self.logger.debug(f"请求 {self.threadId} > P{page} 数据")
             thread = getThread(self.threadId, page=page, lzOnly=lzOnly)
             yield postProgress._updateProgress(0, len(thread["post_list"]))
             for i, post in enumerate(thread["post_list"]):
@@ -177,12 +178,13 @@ class RemoteThread(LightRemoteThread):
                 subpostNum = int(post["sub_post_number"])
                 if subpostNum > 0:
                     subposts = []
-                    logger.debug(f'{self.threadId} > {post["id"]} subpost preRequest')
+                    self.logger.debug(f'处理 {self.threadId} > P{page} > 楼中楼 {post["id"]} 数据')
                     preRequest = getSubPost(self.threadId, post["id"], page=1)
                     subposts += preRequest["subpost_list"]
                     if int(preRequest["page"]["total_page"]) > 1:
                         pages = range(2, int(preRequest["page"]["total_page"]) + 1)
                         for _page in pages:
+                            self.logger.debug(f'请求 {self.threadId} > P{page} > 楼中楼 {post["id"]} > P{_page} 数据')
                             subposts += getSubPost(self.threadId, post["id"], page=_page)["subpost_list"]
                     post["sub_post_list"] = subposts
                 yield postProgress._updateProgress(i + 1)
@@ -349,6 +351,8 @@ class RemoteThread(LightRemoteThread):
 
 
 class LocalThread:
+    logger = logging.getLogger("root.api.LocalThread")
+
     class LocalThreadNoOverwriteError(Exception):
         def __init__(self):
             self.message = "不允许使用新 ID 覆盖一个有效的存档。"
@@ -408,9 +412,6 @@ class LocalThread:
     @property
     def threadId(self):
         return (self.threadInfo and self.threadInfo.get("id")) or self.newThreadId
-
-    def __log(self, msg, level: int = logging.DEBUG):
-        logger.log(level, f"LocalThread({self.threadId}): {msg}")
 
     def __checkValid(self):
         def __test(filename):
@@ -485,20 +486,20 @@ class LocalThread:
                 if count + 1 == max_retry:
                     raise e
                 else:
-                    logger.warning(f"request to {src} failed due to {str(e)}, retry count {count + 1}/{max_retry}")
+                    self.logger.warning(f"(第 {count} 次重试) 请求 {src} 失败: {str(e)}")
 
     def _storeAssets(self, assets: list[TiebaAsset] = None):
         for asset in assets:
             assetSortedDir = os.path.join(self.assetDir, asset.getRoleName())
             os.makedirs(assetSortedDir, exist_ok=True)
 
-            self.__log(f"正在保存资源 {asset.filename}")
+            self.logger.debug(f"正在保存资源 {asset.filename}: {asset.src}")
             yield from self._requestAsset(os.path.join(assetSortedDir, asset.filename), asset.src, asset.filename)
             yield asset
 
     def _storePortraits(self, portraits: list[TiebaAsset] = None):
         for portrait in portraits:
-            self.__log(f'正在保存头像 {portrait.get("portrait")}(ID {portrait.get("id")})')
+            self.logger.debug(f'正在保存头像 {portrait.get("portrait")}(ID {portrait.get("id")})')
             portraitPath = os.path.join(self.portraitDir, portrait.filename)
             yield from self._requestAsset(portraitPath, portrait.src, portrait.get("id"))
             yield portrait
@@ -541,7 +542,7 @@ class LocalThread:
 
     def _store(self):
         # yield Progress(...)
-        self.__log(f"开始存档 {self.threadId}", logging.INFO)
+        self.logger.info(f"开始存档 {self.threadId}")
 
         stepProgress = Progress("LocalThread-Step", "步骤")
         stepProgress.update(tp=5)
@@ -616,7 +617,7 @@ class LocalThread:
         yield stepProgress.increase()
         self.__checkValid()
         self._fillLocalData()
-        self.__log("存档完成！", logging.INFO)
+        self.logger.info(f"存档 {self.threadId} 完成！")
 
     def _updatePosts(self, _new: list = None, _old: list = None) -> list:
         # WARNING: NOT TESTED
@@ -652,7 +653,7 @@ class LocalThread:
             elif floorNum in oldFloors:
                 floor = oldFloors[floorNum]
             else:
-                self.__log(f"{floorNum} 楼完全缺失", logging.INFO)
+                self.logger.info(f"{self.threadId} > {floorNum} 楼完全缺失")
             if floor is not None:
                 updatedPosts.append(floor)
 
@@ -666,7 +667,7 @@ class LocalThread:
 
         downloadAssets = []
         if newAssets == oldAssets:
-            self.__log("无需更新资源", logging.INFO)
+            self.logger.info(f"{self.threadId} 无需更新资源")
         else:
             combinedAssets = newAssets + oldAssets
             duplicatedAssets = list(set(combinedAssets))
