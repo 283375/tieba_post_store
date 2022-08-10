@@ -73,7 +73,7 @@ class TiebaAsset:
         return hash(self.__uniqueKey())
 
     def __eq__(self, other):
-        return self.__uniqueKey() == other.__uniqueKey()
+        return hash(self) == hash(other)
 
 
 class LightRemoteThread:
@@ -488,19 +488,20 @@ class LocalThread:
                     logger.warning(f"request to {src} failed due to {str(e)}, retry count {count + 1}/{max_retry}")
 
     def _storeAssets(self, assets: list[TiebaAsset] = None):
-        for assetObj in assets:
-            assetSortedDir = os.path.join(self.assetDir, assetObj.getRoleName())
+        for asset in assets:
+            assetSortedDir = os.path.join(self.assetDir, asset.getRoleName())
             os.makedirs(assetSortedDir, exist_ok=True)
 
-            self.__log(f"正在保存资源 {assetObj.filename}")
-            yield from self._requestAsset(
-                os.path.join(assetSortedDir, assetObj.filename), assetObj.src, assetObj.filename
-            )
+            self.__log(f"正在保存资源 {asset.filename}")
+            yield from self._requestAsset(os.path.join(assetSortedDir, asset.filename), asset.src, asset.filename)
+            yield asset
 
     def _storePortraits(self, portraits: list[TiebaAsset] = None):
         for portrait in portraits:
             self.__log(f'正在保存头像 {portrait.get("portrait")}(ID {portrait.get("id")})')
-            yield from self._requestAsset(portrait.filename, portrait.src, portrait.get("id"))
+            portraitPath = os.path.join(self.portraitDir, portrait.filename)
+            yield from self._requestAsset(portraitPath, portrait.src, portrait.get("id"))
+            yield portrait
 
     def _storeOrigData(self, timestamp):
         os.makedirs(os.path.join(self.storeDir, "origData"), exist_ok=True)
@@ -546,16 +547,18 @@ class LocalThread:
         stepProgress.update(tp=5)
         detailProgress = Progress("LocalThread-Detail", "详情")
 
-        stepProgress.update(text="正在请求最新数据")
+        yield stepProgress.update(text="正在请求最新数据")
+        yield stepProgress.increase()
         _data = {
             "update": {"posts": None, "assets": None, "portraits": None},
             "download": {"assets": [], "portraits": []},
         }
         yield from self._fillRemoteData()
-        yield stepProgress.increase()
         os.makedirs(self.storeDir, exist_ok=True)
 
         # Analyze & update data
+        yield stepProgress.update(text="正在分析数据")
+        yield stepProgress.increase()
         self.threadInfo = self.remoteThread.getThreadInfo()
         self.users = self.remoteThread.getFullUsersById()
         self.origData = self.remoteThread.getOrigData()
@@ -563,8 +566,10 @@ class LocalThread:
             _a = self._updateAssets() if self.storeOptions["assets"] else []
             _p = self._updatePortraits() if self.storeOptions["portraits"] else []
             _data["update"]["posts"] = self._updatePosts()
-            _data["update"]["assets"] = _data["download"]["assets"] = _a
-            _data["update"]["portraits"] = _data["download"]["portraits"] = _p
+            _data["download"]["assets"] = _a
+            _data["download"]["portraits"] = _p
+            _data["update"]["assets"] = [_.toDict() for _ in _a]
+            _data["update"]["portraits"] = [_.toDict() for _ in _a]
 
             updateTime = self.remoteThread.dataRequestTime
             self.updateInfo["updateTime"] = updateTime
@@ -578,30 +583,40 @@ class LocalThread:
                 self.portraits = self.remoteThread.getFullPortraits()
                 _data["download"]["portraits"] = self.portraits
             self.updateInfo["storeTime"] = self.remoteThread.dataRequestTime
-        yield stepProgress.increase()
 
         # Download data
         #  Caculate total number
         __len = len(_data["download"]["assets"]) + len(_data["download"]["portraits"])
+        yield stepProgress.update(text="正在下载资源")
+        yield stepProgress.increase()
         yield detailProgress.update(0, __len or 1, "下载资源")
 
         #  Download & yield progress
         if __len:
             if _data["download"]["assets"]:
-                yield from self._storeAssets(_data["download"]["assets"])
+                for _ in self._storeAssets(_data["download"]["assets"]):
+                    if type(_) == Progress:
+                        yield _
+                    elif type(_) == TiebaAsset:
+                        yield detailProgress.increase()
             if _data["download"]["portraits"]:
-                yield from self._storePortraits(_data["download"]["portraits"])
+                for _ in self._storePortraits(_data["download"]["portraits"]):
+                    if type(_) == Progress:
+                        yield _
+                    elif type(_) == TiebaAsset:
+                        yield detailProgress.increase()
         else:
             yield detailProgress.increase()
-        yield stepProgress.increase()
 
         # Writing data to files
+        yield stepProgress.update(text="将数据写入文件")
+        yield stepProgress.increase()
         yield from self._writeDataToFile()
+        yield stepProgress.update(text="整理数据")
         yield stepProgress.increase()
         self.__checkValid()
         self._fillLocalData()
         self.__log("存档完成！", logging.INFO)
-        yield stepProgress.increase()
 
     def _updatePosts(self, _new: list = None, _old: list = None) -> list:
         # WARNING: NOT TESTED
@@ -660,17 +675,17 @@ class LocalThread:
 
         return downloadAssets
 
-    def _updatePortraits(self, _new: list = None, _old: list = None) -> list:
-        newPortraits = _new or self.remoteThread.getFullPortraits() or {}
-        oldPortraits = _old or self.portraits or {}
+    def _updatePortraits(self, _new: list[TiebaAsset] = None, _old: list[TiebaAsset] = None) -> list:
         # WARNING: NOT TESTED
+        newPortraits = set(_new or self.remoteThread.getFullPortraits() or [])
+        oldPortraits = set(_old or self.portraits or [])
         oldPortraitsById = {portrait.get("id"): portrait for portrait in oldPortraits}
         newPortraitsById = {portrait.get("id"): portrait for portrait in newPortraits}
 
         downloadPortraits = [
-            newPortraitValue
-            for newPortraitId, newPortraitValue in newPortraitsById.items()
-            if oldPortraitsById.get(newPortraitId) != newPortraitValue
+            newPortrait
+            for newPortraitId, newPortrait in newPortraitsById.items()
+            if oldPortraitsById.get(newPortraitId) != newPortrait
         ]
 
         self.portraits = list((oldPortraitsById | newPortraitsById).values())
