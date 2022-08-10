@@ -1,29 +1,162 @@
-from PySide6.QtWidgets import (
-    QListWidget,
-    QListWidgetItem,
-    QWidget,
-    QLabel,
-    QVBoxLayout,
-)
-from PySide6.QtCore import Qt, Signal, Slot
+from typing import Any, Union
+from PySide6.QtCore import QPersistentModelIndex, QSize
+from PySide6.QtWidgets import QStyleOptionViewItem
+from PySide6.QtGui import QPainter
+
+from PySide6.QtWidgets import QListView, QStyledItemDelegate, QStyle
+from PySide6.QtCore import Qt, QRect, QAbstractListModel, QModelIndex, QByteArray, Signal, Slot
+from PySide6.QtGui import QPen, QFont, QFontMetrics, QColor, QBrush
 
 from ._vars import app, statusBar
 from api.workDirectory import scanDirectory
 from api.thread import LocalThread, getLocalThreadInfo
 
 
-class ThreadListWidget(QListWidget):
+class ThreadListModel(QAbstractListModel):
+    __threadList: list[dict[int, Any]] = []
+    LocalThreadRole = 20
+    TitleTextRole = 21
+    AuthorTextRole = 22
+    StoreInfoTextRole = 23
+    TitleTextQFont = QFont()
+    TitleTextQFont.setPixelSize(14)
+    # TitleTextQFont.setBold(True)
+    TitleTextQFontRole = 31
+    AuthorTextQFont = QFont()
+    AuthorTextQFont.setPixelSize(12)
+    AuthorTextQFontRole = 32
+    StoreInfoTextQFont = QFont()
+    StoreInfoTextQFont.setPixelSize(12)
+    StoreInfoTextQFontRole = 33
+
+    def __init__(self, parent=None):
+        super(ThreadListModel, self).__init__(parent)
+
+    def rowCount(self, parent=None) -> int:
+        return len(self.__threadList)
+
+    def roleNames(self) -> dict[int, QByteArray]:
+        return {**super().roleNames(), self.LocalThreadRole: QByteArray(b"LocalThread")}
+
+    def data(
+        self,
+        index: Union[QModelIndex, QPersistentModelIndex],
+        role: int = 20,
+    ):
+        if not index.isValid() or index.row() >= self.rowCount():
+            return None
+        return self.__threadList[index.row()].get(role)
+
+    def updateList(self, _list: list[LocalThread]):
+        _totalRow = self.rowCount()
+        self.beginRemoveRows(QModelIndex(), 0, _totalRow)
+        self.__threadList.clear()
+        self.endRemoveRows()
+
+        _totalRow = len(_list)
+        self.beginInsertRows(QModelIndex(), 0, _totalRow)
+        for t in _list:
+            info = getLocalThreadInfo(t)
+            self.__threadList.append(
+                {
+                    self.LocalThreadRole: t,
+                    self.TitleTextRole: f'{info["title"]} (ID: {info["threadId"]})',
+                    self.AuthorTextRole: f'楼主 {info["author"]["displayName"]} (曾用名 {info["author"]["origName"]})',
+                    self.StoreInfoTextRole: f'存档于 {info["storeDir"]}',
+                    self.TitleTextQFontRole: self.TitleTextQFont,
+                    self.AuthorTextQFontRole: self.AuthorTextQFont,
+                    self.StoreInfoTextQFontRole: self.StoreInfoTextQFont,
+                }
+            )
+        self.endInsertRows()
+
+    def _allLocalThreads(self):
+        return [t[self.LocalThreadRole] for t in self.__threadList]
+
+
+class LocalThreadDisplayDelegate(QStyledItemDelegate):
+    horizontalPadding = 6
+    verticalPadding = 6
+    borderBaseColor = (0x58, 0xB6, 0xFB)
+    fillColor = (0x4F, 0x41, 0xC2)
+
+    def __getTextAndQFonts(self, index: Union[QModelIndex, QPersistentModelIndex]):
+        model = ThreadListModel
+        return [
+            [index.data(model.TitleTextRole), index.data(model.TitleTextQFontRole)],
+            [index.data(model.AuthorTextRole), index.data(model.AuthorTextQFontRole)],
+            [index.data(model.StoreInfoTextRole), index.data(model.StoreInfoTextQFontRole)],
+        ]
+
+    def __getTextMaxWidth(self, index: Union[QModelIndex, QPersistentModelIndex]):
+        maxWidth = 0
+        for _ in self.__getTextAndQFonts(index):
+            text, font = _
+            fm = QFontMetrics(font)
+            width = fm.horizontalAdvance(text)
+            if maxWidth < width:
+                maxWidth = width
+        return maxWidth
+
+    def paint(
+        self, painter: QPainter, option: QStyleOptionViewItem, index: Union[QModelIndex, QPersistentModelIndex]
+    ) -> None:
+        painter.save()
+
+        rect: QRect = option.rect
+        if option.state & QStyle.State_MouseOver:
+            painter.setPen(Qt.NoPen)
+            painter.setBrush(QBrush(QColor(*(self.fillColor), 50)))  # fillBrush
+            painter.drawRect(rect.x(), rect.y(), rect.width(), rect.height())
+            painter.setBrush(Qt.NoBrush)
+            painter.setPen(option.palette.text().color())
+        if option.state & QStyle.State_Selected:
+            painter.setPen(QPen(QColor(*(self.borderBaseColor))))  # borderPen
+            painter.setBrush(QBrush(QColor(*(self.fillColor), 200)))  # fillBrush
+            painter.drawRect(rect.x() + 1, rect.y(), rect.width(), rect.height())
+            painter.setPen(Qt.white)
+            painter.setBrush(Qt.NoBrush)
+
+        def __drawText(top: int, font: QFont, text: str):
+            fm = QFontMetrics(font)
+            fontWidth = fm.horizontalAdvance(text, Qt.AlignLeft | Qt.AlignVCenter)
+            __rect = QRect(
+                self.horizontalPadding + rect.left(),
+                rect.y() + top,
+                self.horizontalPadding + fontWidth + self.horizontalPadding,
+                fm.height(),
+            )
+            painter.setFont(font)
+            painter.drawText(__rect, Qt.AlignLeft | Qt.AlignVCenter, text)
+
+        _top = self.verticalPadding
+        for _ in self.__getTextAndQFonts(index):
+            text, font = _
+            __drawText(_top, font, text)
+            _top += font.pixelSize() + self.verticalPadding
+
+        painter.restore()
+
+    def sizeHint(self, option: QStyleOptionViewItem, index: Union[QModelIndex, QPersistentModelIndex]) -> QSize:
+        return QSize(self.horizontalPadding + self.__getTextMaxWidth(index) + self.horizontalPadding, 64)
+
+
+class ThreadListWidget(QListView):
     threadSelected = Signal(LocalThread)
 
-    def __init__(self):
-        super().__init__()
-        self.setSelectionMode(QListWidget.SingleSelection)
+    def __init__(self, parent=None):
+        super(ThreadListWidget, self).__init__(parent)
+        self.setSelectionMode(QListView.SingleSelection)
         self.setSelectionRectVisible(True)
         self.setDragEnabled(False)
         self.setAcceptDrops(False)
         self.lastDirectory = None
 
-        self.itemDoubleClicked.connect(self.__itemChanged)
+        self._model = ThreadListModel()
+        self.setModel(self._model)
+        self.setItemDelegate(LocalThreadDisplayDelegate())
+
+        self.doubleClicked.connect(self.__itemChanged)
 
     @Slot(str)
     def workDirectoryChanged(self, workDirectory):
@@ -33,33 +166,13 @@ class ThreadListWidget(QListWidget):
         savedThreads = [t for dir, t in scanDirectory(workDirectory) if type(t) == LocalThread]
 
         statusBar.showMessage(f"在 {workDirectory} 中找到了 {len(savedThreads)} 个有效存档目录", 10000)
-
-        self.clear()
-        for i, thread in enumerate(savedThreads):
-            info = getLocalThreadInfo(thread)
-            text = f"""
-            <b>{info["title"]}</b> (ID: {info["threadId"]})
-            <br>楼主 {info["author"]["displayName"]}
-            <br>存档于 {info["storeDir"]}"""
-
-            label = QLabel(text)
-            widget = QWidget()
-            widget.layout = QVBoxLayout(widget)
-            widget.layout.addWidget(label)
-            item = QListWidgetItem()
-            item.setData(Qt.UserRole, thread)
-            if i == 0:
-                item.setSelected(True)
-                self.__itemChanged(item)
-            self.addItem(item)
-            item.setSizeHint(widget.sizeHint())
-            self.setItemWidget(item, widget)
+        self._model.updateList(savedThreads)
         self.lastDirectory = workDirectory
 
     @Slot()
     def refreshDirectory(self):
         self.workDirectoryChanged(self.lastDirectory)
 
-    @Slot(QListWidgetItem)
-    def __itemChanged(self, item: QListWidgetItem):
-        self.threadSelected.emit(item.data(Qt.UserRole))
+    @Slot(QModelIndex)
+    def __itemChanged(self, index: QModelIndex):
+        self.threadSelected.emit(index.data(ThreadListModel.LocalThreadRole))
