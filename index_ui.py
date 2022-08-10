@@ -37,22 +37,9 @@ if __name__ == "__main__":
     threadListWidget.threadSelected.connect(threadInfoWidget.updateLocalThread)
 
     class LogForwardHandler(logging.Handler):
-        def __init__(self, level=logging.DEBUG):
-            super().__init__(level)
-            self.formatter = logging.Formatter(
-                "[%(asctime)s][%(levelname)s]: %(message)s",
-                "%m-%d %H:%M:%S",
-            )
-
         def handle(self, record):
             logWindowWidget._model.appendLogRecord(record)
-            if record.levelno >= logging.INFO:
-                _vars.logStatusBar.showMessage(self.format(record))
-                app.processEvents()
             return True
-
-        def format(self, record) -> str:
-            return self.formatter.format(record)
 
     logger.addHandler(LogForwardHandler())
 
@@ -81,7 +68,6 @@ if __name__ == "__main__":
     centralWidget = QWidget()
     centralWidget.layout = QVBoxLayout(centralWidget)
     centralWidget.layout.addWidget(tab)
-    centralWidget.layout.addWidget(_vars.logStatusBar)
 
     mainWindow = QMainWindow()
     mainWindow.setCentralWidget(centralWidget)

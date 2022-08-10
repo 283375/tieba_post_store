@@ -9,8 +9,6 @@ logger = logging.getLogger("main")
 
 app = QApplication(sys.argv)
 statusBar = QStatusBar()
-logStatusBar = QStatusBar()
-logStatusBar.setSizeGripEnabled(False)
 
 
 class WorkDirectoryInstance(QObject):
