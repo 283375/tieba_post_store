@@ -12,14 +12,14 @@ from PySide6.QtCore import Qt
 
 from ui import LogWindow, ThreadInfo, ThreadList, NewThread, WorkDirectory, _vars
 
-logger = logging.getLogger("main")
+logger = logging.getLogger("root")
 logger.setLevel(logging.DEBUG)
 
 # fmt: off
-import time
-debugFileHandler = logging.FileHandler(f"./__debug/logs/{time.strftime('%Y-%m-%d %H-%M-%S', time.localtime())}.log", encoding="utf-8")
-debugFileHandler.setFormatter(logging.Formatter("[%(asctime)s][%(levelno)s:%(levelname)s][%(funcName)s() in %(module)s>> %(message)s", "%Y-%m-%d %H:%M:%S"))
-logger.addHandler(debugFileHandler)
+# import time
+# debugFileHandler = logging.FileHandler(f"./__debug/logs/{time.strftime('%Y-%m-%d %H-%M-%S', time.localtime())}.log", encoding="utf-8")
+# debugFileHandler.setFormatter(logging.Formatter("[%(asctime)s][%(levelno)s:%(levelname)s][%(funcName)s() in %(module)s>> %(message)s", "%Y-%m-%d %H:%M:%S"))
+# logger.addHandler(debugFileHandler)
 # fmt: on
 
 if __name__ == "__main__":
@@ -36,12 +36,12 @@ if __name__ == "__main__":
     _vars.signals.refreshWorkDirectory.connect(threadListWidget.refreshDirectory)
     threadListWidget.threadSelected.connect(threadInfoWidget.updateLocalThread)
 
-    class LogForwardHandler(logging.Handler):
+    class LogWindowForwardHandler(logging.Handler):
         def handle(self, record):
             logWindowWidget._model.appendLogRecord(record)
             return True
 
-    logger.addHandler(LogForwardHandler())
+    logger.addHandler(LogWindowForwardHandler())
 
     threadListWidget.setMaximumWidth(300)
     newThreadWidget.setMaximumWidth(200)

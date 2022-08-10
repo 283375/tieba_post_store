@@ -6,7 +6,7 @@ from uuid import uuid4
 
 from . import formatNumber
 
-logger = logging.getLogger("main")
+logger = logging.getLogger("root")
 
 
 class UncallableError(Exception):

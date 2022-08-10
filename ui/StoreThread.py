@@ -16,7 +16,7 @@ from api.thread import LocalThread
 from utils.progress import Progress
 from ._vars import app, signals
 
-logger = logging.getLogger("main")
+logger = logging.getLogger("root")
 
 
 class UserTerminate(Exception):
