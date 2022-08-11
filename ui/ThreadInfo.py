@@ -4,8 +4,6 @@ from PySide6.QtWidgets import (
     QWidget,
     QLabel,
     QSpacerItem,
-    QPushButton,
-    QProgressBar,
     QFormLayout,
     QVBoxLayout,
     QSizePolicy,
@@ -55,7 +53,7 @@ class ThreadInfoWidget(QWidget):
         self.layout.addWidget(self.storeThread)
 
     @Slot(LocalThread)
-    def updateLocalThread(self, t: LocalThread):
+    def setLocalThread(self, t: LocalThread):
         self.localThread = t
         self.storeThread.setLocalThread(t)
         self.updateLabels()

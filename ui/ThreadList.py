@@ -3,10 +3,11 @@ from PySide6.QtCore import QPersistentModelIndex, QSize
 from PySide6.QtWidgets import QStyleOptionViewItem
 from PySide6.QtGui import QPainter
 
-from PySide6.QtWidgets import QListView, QStyledItemDelegate, QStyle
+from PySide6.QtWidgets import QWidget, QListView, QLabel, QStackedLayout, QVBoxLayout, QStyledItemDelegate, QStyle
 from PySide6.QtCore import Qt, QRect, QAbstractListModel, QModelIndex, QByteArray, Signal, Slot
 from PySide6.QtGui import QPen, QFont, QFontMetrics, QColor, QBrush
 
+from .ThreadInfo import ThreadInfoWidget
 from ._vars import app, statusBar
 from api.workDirectory import scanDirectory
 from api.thread import LocalThread, getLocalThreadInfo
@@ -88,16 +89,6 @@ class LocalThreadDisplayDelegate(QStyledItemDelegate):
             [index.data(model.StoreInfoTextRole), index.data(model.StoreInfoTextQFontRole)],
         ]
 
-    def __getTextMaxWidth(self, index: Union[QModelIndex, QPersistentModelIndex]):
-        maxWidth = 0
-        for _ in self.__getTextAndQFonts(index):
-            text, font = _
-            fm = QFontMetrics(font)
-            width = fm.horizontalAdvance(text)
-            if maxWidth < width:
-                maxWidth = width
-        return maxWidth
-
     def paint(
         self, painter: QPainter, option: QStyleOptionViewItem, index: Union[QModelIndex, QPersistentModelIndex]
     ) -> None:
@@ -138,11 +129,21 @@ class LocalThreadDisplayDelegate(QStyledItemDelegate):
         painter.restore()
 
     def sizeHint(self, option: QStyleOptionViewItem, index: Union[QModelIndex, QPersistentModelIndex]) -> QSize:
-        return QSize(self.horizontalPadding + self.__getTextMaxWidth(index) + self.horizontalPadding, 64)
+        maxWidth = 0
+        height = 0
+        for _ in self.__getTextAndQFonts(index):
+            text, font = _
+            fm = QFontMetrics(font)
+            height += font.pixelSize() + self.verticalPadding
+            width = fm.horizontalAdvance(text)
+            if maxWidth < width:
+                maxWidth = width
+        return QSize(maxWidth + self.horizontalPadding * 2, height + self.verticalPadding * 2)
 
 
 class ThreadListWidget(QListView):
-    threadSelected = Signal(LocalThread)
+    listUpdated = Signal(list)
+    selectedIndexChanged = Signal(QModelIndex)
 
     def __init__(self, parent=None):
         super(ThreadListWidget, self).__init__(parent)
@@ -156,7 +157,7 @@ class ThreadListWidget(QListView):
         self.setModel(self._model)
         self.setItemDelegate(LocalThreadDisplayDelegate())
 
-        self.doubleClicked.connect(self.__itemChanged)
+        self.doubleClicked.connect(self.__changeSelectedIndex)
 
     @Slot(str)
     def workDirectoryChanged(self, workDirectory):
@@ -167,6 +168,7 @@ class ThreadListWidget(QListView):
 
         statusBar.showMessage(f"在 {workDirectory} 中找到了 {len(savedThreads)} 个有效存档目录", 10000)
         self._model.updateList(savedThreads)
+        self.listUpdated.emit(savedThreads)
         self.lastDirectory = workDirectory
 
     @Slot()
@@ -174,5 +176,35 @@ class ThreadListWidget(QListView):
         self.workDirectoryChanged(self.lastDirectory)
 
     @Slot(QModelIndex)
-    def __itemChanged(self, index: QModelIndex):
-        self.threadSelected.emit(index.data(ThreadListModel.LocalThreadRole))
+    def __changeSelectedIndex(self, index: QModelIndex):
+        self.selectedIndexChanged.emit(index)
+
+
+class ThreadInfoStackedWidget(QWidget):
+    emptyWidget = QWidget()
+    emptyWidget.layout = QVBoxLayout(emptyWidget)
+    emptyWidget.layout.addWidget(QLabel("未找到任何存档"))
+    emptyWidget.layout.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
+
+    placeholderWidget = QWidget()
+    placeholderWidget.layout = QVBoxLayout(placeholderWidget)
+    placeholderWidget.setVisible(False)
+
+    def __init__(self, parent=None):
+        super(ThreadInfoStackedWidget, self).__init__(parent)
+        self.layout: QStackedLayout = QStackedLayout(self)
+        self.layout.insertWidget(0, self.emptyWidget)
+
+    @Slot(list)
+    def updateList(self, _list: list[LocalThread]) -> None:
+        for i in range(self.layout.count()):
+            self.layout.insertWidget(i, self.placeholderWidget)
+
+        for i, lt in enumerate(_list):
+            widget = ThreadInfoWidget()
+            widget.setLocalThread(lt)
+            self.layout.insertWidget(i, widget)
+
+    @Slot(QModelIndex)
+    def setCurrentIndex(self, i: QModelIndex):
+        self.layout.setCurrentIndex(i.row())

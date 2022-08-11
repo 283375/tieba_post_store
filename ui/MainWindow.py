@@ -13,13 +13,14 @@ app = _vars.app
 tab = QTabWidget()
 workDirectoryWidget = WorkDirectory.ChangeWorkDirectory()
 threadListWidget = ThreadList.ThreadListWidget()
+threadInfoStackedWidget = ThreadList.ThreadInfoStackedWidget()
 newThreadWidget = NewThread.NewThreadWidget()
-threadInfoWidget = ThreadInfo.ThreadInfoWidget()
 logWindowWidget = LogWindow.LogWindowWidget()
 
 _vars.workDirectoryInstance.dirChanged.connect(threadListWidget.workDirectoryChanged)
 _vars.signals.refreshWorkDirectory.connect(threadListWidget.refreshDirectory)
-threadListWidget.threadSelected.connect(threadInfoWidget.updateLocalThread)
+threadListWidget.listUpdated.connect(threadInfoStackedWidget.updateList)
+threadListWidget.selectedIndexChanged.connect(threadInfoStackedWidget.setCurrentIndex)
 
 
 class LogWindowForwardHandler(logging.Handler):
@@ -42,7 +43,7 @@ listWrapper.layout.addWidget(newThreadWidget)
 indexLowerWrapper = QHBoxLayout()
 indexLowerWrapper.setStretch(0, 0)
 indexLowerWrapper.addWidget(listWrapper)
-indexLowerWrapper.addWidget(threadInfoWidget)
+indexLowerWrapper.addWidget(threadInfoStackedWidget)
 
 indexWrapper = QWidget()
 indexWrapper.layout = QVBoxLayout(indexWrapper)
