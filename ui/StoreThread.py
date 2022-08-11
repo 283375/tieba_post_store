@@ -4,13 +4,15 @@ from PySide6.QtWidgets import (
     QProgressBar,
     QLabel,
     QPushButton,
+    QGroupBox,
+    QCheckBox,
     QMessageBox,
     QWidget,
     QVBoxLayout,
     QHBoxLayout,
     QSizePolicy,
 )
-from PySide6.QtCore import Qt, QObject, QThread, QMutex, Signal, Slot
+from PySide6.QtCore import Qt, QThread, Signal, Slot
 
 from api.thread import LocalThread
 from utils.progress import Progress
@@ -62,17 +64,28 @@ class StoreThread(QWidget):
         self.labelSizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         self.labelSizePolicy.setHorizontalStretch(1)
         self.label.setSizePolicy(self.labelSizePolicy)
+
+        self.lzOnlyCheckBox = QCheckBox("只看楼主")
+        self.assetsCheckBox = QCheckBox("图像、音视频文件")
+        self.portraitsCheckBox = QCheckBox("用户头像")
+        self.storeOptionsWrapper = QGroupBox("存档选项")
+        self.storeOptionsWrapper.layout = QHBoxLayout(self.storeOptionsWrapper)
+        self.storeOptionsWrapper.layout.addWidget(self.assetsCheckBox)
+        self.storeOptionsWrapper.layout.addWidget(self.portraitsCheckBox)
+        self.storeOptionsWrapper.layout.addWidget(self.lzOnlyCheckBox)
+
         self.storeStartButton = QPushButton("存档")
         self.storeStartButton.clicked.connect(self.storeStart)
         self.storeSuspendButton = QPushButton("强制中止")
         self.storeSuspendButton.setEnabled(False)
         self.storeSuspendButton.clicked.connect(self.storeSuspend)
-
         self.lowerWrapper = QHBoxLayout()
         self.lowerWrapper.addWidget(self.storeSuspendButton)
         self.lowerWrapper.addWidget(self.storeStartButton)
         self.lowerWrapper.addWidget(self.label)
+
         self.layout = QVBoxLayout(self)
+        self.layout.addWidget(self.storeOptionsWrapper)
         self.layout.addWidget(self.stepProgressBar)
         self.layout.addWidget(self.detailProgressBar)
         self.layout.addWidget(self.singleFileProgressBar)
@@ -81,6 +94,9 @@ class StoreThread(QWidget):
     @Slot(LocalThread)
     def setLocalThread(self, t: LocalThread):
         self.localThread = t
+        self.lzOnlyCheckBox.setChecked(t.storeOptions["lzOnly"])
+        self.assetsCheckBox.setChecked(t.storeOptions["assets"])
+        self.portraitsCheckBox.setChecked(t.storeOptions["portraits"])
         self.storeStartButton.setText("更新" if t.isValid else "存档")
 
     def __updateProgressBar(self, progressBar: QProgressBar, progress: Progress):
@@ -110,6 +126,13 @@ class StoreThread(QWidget):
 
     @Slot()
     def storeStart(self, *args):
+        self.localThread.updateStoreOptions(
+            {
+                "lzOnly": self.lzOnlyCheckBox.isChecked(),
+                "assets": self.assetsCheckBox.isChecked(),
+                "portraits": self.portraitsCheckBox.isChecked(),
+            }
+        )
         self._thread = StoreThreadThread()
         self._thread.exceptionOccured.connect(self.storeExceptionOccured)
         self._thread.actionFinal.connect(self.storeFinal)
@@ -124,11 +147,12 @@ class StoreThread(QWidget):
 
     @Slot(Exception)
     def storeExceptionOccured(self, e: Exception):
+        self._thread.progressUpdated.disconnect(self.updateProgress)
         self._thread.exceptionOccured.disconnect(self.storeExceptionOccured)
         self._thread.actionFinal.disconnect(self.storeFinal)
-        self._thread.progressUpdated.disconnect(self.updateProgress)
         self._thread.terminate()
-        logger.error(f"{self.__class__.__name__}: Store {self.localThread.threadId} failed due to: {str(e)}")
+        self._thread.wait()
+        logger.exception(f"存档 {self.localThread.threadId} 时发生错误: {str(e)}")
 
         errorText = "网络超时" if type(e) in (ConnectTimeout, ReadTimeout) else "出现意外错误"
         QMessageBox.critical(self, "错误", f"{errorText}，存档失败。详细信息:\n{str(e)}")

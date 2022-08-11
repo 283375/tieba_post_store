@@ -43,12 +43,7 @@ class NewThreadConfirmDialog(QDialog):
     def __init__(self, parent=None):
         super(NewThreadConfirmDialog, self).__init__(parent)
         self.storeThread = StoreThread()
-        self.storeThread.setVisible(False)
-        self.buttonBox = QDialogButtonBox(self)
-        self.buttonBox.setOrientation(Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QDialogButtonBox.Cancel | QDialogButtonBox.Ok)
-        self.buttonBox.accepted.connect(self.store)
-        self.buttonBox.rejected.connect(self.reject)
+
         self.layout = QGridLayout(self)
         self.idLabel = QLabel()
         self.titleLabel = QLabel()
@@ -62,9 +57,8 @@ class NewThreadConfirmDialog(QDialog):
         self.layout.addWidget(self.authorLabel, 2, 1)
         self.layout.addWidget(QLabel("将存档于"), 4, 0)
         self.layout.addWidget(self.storeDirLabel, 4, 1)
-        self.layout.addWidget(QLabel("确定吗？"), 5, 0, 1, 2)
-        self.layout.addWidget(self.buttonBox, 6, 0, 1, 2)
-        self.layout.addWidget(self.storeThread, 7, 0, 1, 2)
+        self.layout.addWidget(QLabel("若确定，请在确认存档选项后单击“存档”按钮"), 5, 0, 1, 2)
+        self.layout.addWidget(self.storeThread, 6, 0, 1, 2)
 
     def updateId(self, threadId: int):
         self.threadId = threadId
@@ -76,18 +70,11 @@ class NewThreadConfirmDialog(QDialog):
             self.titleLabel.setText(f'【{self.info["forum"]["name"]}吧】{self.info["title"]}')
             self.authorLabel.setText(f'楼主 {self.info["author"]["displayName"]}')
             self.storeDirLabel.setText(self.storeDir)
+            self.storeThread.setLocalThread(LocalThread(self.storeDir, self.threadId))
         except LightRemoteThread.ThreadInvalidError as e:
             QMessageBox.critical(self, "错误", f"贴子 {threadId} 无效。\n详细信息: {str(e)}")
             statusBar.clearMessage()
             raise e
-
-    def store(self):
-        lt = LocalThread(self.storeDir, self.threadId)
-        lt.updateStoreOptions({"assets": True, "portraits": True})
-        self.storeThread.storeComplete.connect(self.accept)
-        self.storeThread.setLocalThread(lt)
-        self.storeThread.setVisible(True)
-        self.storeThread.storeStart()
 
 
 class NewThreadWidget(QPushButton):
