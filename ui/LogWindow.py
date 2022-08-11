@@ -19,11 +19,11 @@ from PySide6.QtCore import Qt, QAbstractListModel, QModelIndex, QByteArray
 logger = logging.getLogger("root")
 
 previewFormatter = logging.Formatter(
-    "[%(asctime)s][%(levelname)s][%(funcName)s() in %(module)s>> %(message)s",
+    "[%(asctime)s %(levelname)s][%(name)s > %(funcName)s()>> %(message)s",
     "%m-%d %H:%M:%S",
 )
 saveFormatter = logging.Formatter(
-    "[%(asctime)s][%(levelno)s:%(levelname)s][%(funcName)s() in %(module)s>> %(message)s",
+    "[%(asctime)s %(levelno)s:%(levelname)s][%(name)s > %(funcName)s()>> %(message)s",
     "%Y-%m-%d %H:%M:%S",
 )
 
@@ -114,7 +114,7 @@ class LogWindowWidget(QWidget):
             QMessageBox.warning(self, "导不出来", "没有日志可供导出")
 
     def exportSelection(self):
-        if records := [self._model.data(i, self._model.LogRecordRole) for i in self._view.selectedIndexes()]:
+        if records := [i.data(self._model.LogRecordRole) for i in self._view.selectedIndexes()]:
             if filename := self.getSaveFilename()[0]:
                 self._writeLogToFile(filename, records)
         else:
