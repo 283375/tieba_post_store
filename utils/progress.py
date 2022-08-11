@@ -17,14 +17,12 @@ class UncallableError(Exception):
         return f"{type(self.obj)} is not a callable object."
 
 
-class ProgressType:
-    Plain = 0
-    BigNumber = 1
-    Byte = 2
-
-
 class Progress:
-    def __init__(self, id: str = "", title: str = "", type: int = ProgressType.Plain):
+    Type_Plain = 0
+    Type_BigNumber = 1
+    Type_Byte = 2
+
+    def __init__(self, id: str = "", title: str = "", type: int = Type_Plain):
         self.__uuid = uuid4()
         self.id = id
         self.type = type
@@ -91,9 +89,9 @@ class Progress:
             __str += f"{self.title or self.text}: "
 
         __formatNum = str
-        if self.type == ProgressType.BigNumber:
+        if self.type == self.Type_BigNumber:
             __formatNum = formatNumber.bigNumber
-        elif self.type == ProgressType.Byte:
+        elif self.type == self.Type_Byte:
             __formatNum = formatNumber.byte
         __str += f"{__formatNum(self.progress)} / {__formatNum(self.totalProgress)} "
         __str += f"{(self.progress / self.totalProgress):.2%}"

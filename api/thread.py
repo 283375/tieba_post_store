@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 from functools import wraps
 
 from api.tiebaApi import getThread, getSubPost
-from utils.progress import Progress, ProgressType
+from utils.progress import Progress
 
 
 class TiebaAsset:
@@ -476,7 +476,7 @@ class LocalThread:
             try:
                 with open(filepath, "wb") as f:
                     req = requests.get(src, stream=True)
-                    progress = Progress("LocalThread-DownloadAsset", type=ProgressType.Byte)
+                    progress = Progress("LocalThread-DownloadAsset", type=Progress.Type_Byte)
                     totalSize = int(req.headers.get("Content-Length", 0))
                     progress.update(0, totalSize, progressText)
                     for part in req.iter_content(chunk_size=512):
