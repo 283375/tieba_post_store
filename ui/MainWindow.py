@@ -14,7 +14,7 @@ tab = QTabWidget()
 workDirectoryWidget = WorkDirectory.ChangeWorkDirectory()
 threadListWidget = ThreadList.ThreadListWidget()
 threadInfoStackedWidget = ThreadList.ThreadInfoStackedWidget()
-newThreadWidget = NewThread.NewThreadWidget()
+newThreadWidget = NewThread.NewThreadEntryWidget()
 logWindowWidget = LogWindow.LogWindowWidget()
 
 _vars.workDirectoryInstance.dirChanged.connect(threadListWidget.workDirectoryChanged)

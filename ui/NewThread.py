@@ -7,21 +7,20 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QPushButton,
     QMessageBox,
-    QWidget,
     QLabel,
     QVBoxLayout,
     QGridLayout,
 )
-from PySide6.QtCore import Qt, Signal, Slot
+from PySide6.QtCore import Qt, Slot
 
 from api.thread import LightRemoteThread, LocalThread
-from ._vars import app, workDirectoryInstance, statusBar
+from ._vars import workDirectoryInstance, statusBar
 from .StoreThread import StoreThread
 
 
-class NewThreadDialog(QDialog):
+class NewThreadParseInputDialog(QDialog):
     def __init__(self, parent=None):
-        super(NewThreadDialog, self).__init__(parent)
+        super(NewThreadParseInputDialog, self).__init__(parent)
         self.setWindowTitle("New Thread")
         self.layout = QVBoxLayout(self)
         self.tipLabel = QLabel("请输入贴子的 ID 或网页链接。<br />如 7741777833 或 https://tieba.baidu.com/p/7741777833")
@@ -77,25 +76,25 @@ class NewThreadConfirmDialog(QDialog):
             raise e
 
 
-class NewThreadWidget(QPushButton):
+class NewThreadEntryWidget(QPushButton):
     def __init__(self):
         super().__init__()
         self.setText("+ 新存档贴子")
-        self.dialog = NewThreadDialog(self)
-        self.clicked.connect(self.showDialog)
-        self.dialog.finished.connect(self.dialogFinished)
+        self.parseInput = NewThreadParseInputDialog(self)
+        self.clicked.connect(self.openParseInputDialog)
+        self.parseInput.finished.connect(self.parseDialogInput)
         self.confirmDialog = NewThreadConfirmDialog(self)
 
     @Slot()
-    def showDialog(self):
-        self.dialog.open()
+    def openParseInputDialog(self):
+        self.parseInput.open()
 
     @Slot()
-    def dialogFinished(self, signal: int):
+    def parseDialogInput(self, signal: int):
         if signal != QDialog.Accepted:
             return
 
-        _input = self.dialog.edit.text()
+        _input = self.parseInput.edit.text()
         try:
             _id = int(_input, 10)  # _input is id?
         except ValueError:
@@ -104,8 +103,8 @@ class NewThreadWidget(QPushButton):
             except Exception as e:
                 _id = None
                 QMessageBox.critical(self, "输入无效", f'无法解析 "{_input}"\n详细信息: {str(e)}')
-                self.dialog.open()
+                self.parseInput.open()
                 raise e
 
         self.confirmDialog.updateId(_id)
-        self.confirmDialog.open()
+        self.confirmDialog.show()
