@@ -33,7 +33,7 @@ class Progress:
         self.overrideFormat: Callable[[Self], str] = None
 
     def __str__(self):
-        return f'<Progress {str(self.__uuid)} {str(self.id)}> {f"{self.title} - {self.text}" if self.title else self.text}: {self.progress} / {self.totalProgress}'
+        return self.format()
 
     def ReturnSelf(func):
         @wraps(func)
@@ -63,12 +63,14 @@ class Progress:
         self._updateText(text, title)
 
     @ReturnSelf
-    def increase(self, p: int = 1):
+    def increase(self, p: int = 1, text: str = None, title: str = None):
         self.progress += p
+        self._updateText(text, title)
 
     @ReturnSelf
-    def decrease(self, p: int = 1):
+    def decrease(self, p: int = 1, text: str = None, title: str = None):
         self.progress -= p
+        self._updateText(text, title)
 
     @ReturnSelf
     def setType(self, type: int):

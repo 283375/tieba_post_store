@@ -168,12 +168,12 @@ class RemoteThread(LightRemoteThread):
         pageProgress = Progress("RemoteThread-Page", "页面", "正在更新页面")
         postProgress = Progress("RemoteThread-Post", "回复贴")
 
-        yield pageProgress._updateProgress(0, self.totalPage)
+        yield pageProgress.update(0, self.totalPage)
         for page in self.totalPageRange:
             self.logger.debug(f"请求 {self.threadId} > P{page} 数据")
             thread = getThread(self.threadId, page=page, lzOnly=lzOnly)
-            yield postProgress._updateProgress(0, len(thread["post_list"]))
-            for i, post in enumerate(thread["post_list"]):
+            yield postProgress.update(0, len(thread["post_list"]))
+            for post in thread["post_list"]:
                 yield postProgress._updateText(str(post["id"]))
                 subpostNum = int(post["sub_post_number"])
                 if subpostNum > 0:
@@ -187,8 +187,8 @@ class RemoteThread(LightRemoteThread):
                             self.logger.debug(f'请求 {self.threadId} > P{page} > 楼中楼 {post["id"]} > P{_page} 数据')
                             subposts += getSubPost(self.threadId, post["id"], page=_page)["subpost_list"]
                     post["sub_post_list"] = subposts
-                yield postProgress._updateProgress(i + 1)
-            yield pageProgress._updateProgress(page)
+                yield postProgress.increase()
+            yield pageProgress.update(page)
 
             self.origData[f"page_{page}"] = thread
         self.dataRequested = True
@@ -548,8 +548,7 @@ class LocalThread:
         stepProgress.update(tp=5)
         detailProgress = Progress("LocalThread-Detail", "详情")
 
-        yield stepProgress.update(text="正在请求最新数据")
-        yield stepProgress.increase()
+        yield stepProgress.increase(text="正在请求最新数据")
         _data = {
             "update": {"posts": None, "assets": None, "portraits": None},
             "download": {"assets": [], "portraits": []},
@@ -558,8 +557,7 @@ class LocalThread:
         os.makedirs(self.storeDir, exist_ok=True)
 
         # Analyze & update data
-        yield stepProgress.update(text="正在分析数据")
-        yield stepProgress.increase()
+        yield stepProgress.increase(text="正在分析数据")
         self.threadInfo = self.remoteThread.getThreadInfo()
         self.users = self.remoteThread.getFullUsersById()
         self.origData = self.remoteThread.getOrigData()
@@ -588,8 +586,7 @@ class LocalThread:
         # Download data
         #  Caculate total number
         __len = len(_data["download"]["assets"]) + len(_data["download"]["portraits"])
-        yield stepProgress.update(text="正在下载资源")
-        yield stepProgress.increase()
+        yield stepProgress.increase(text="正在下载资源")
         yield detailProgress.update(0, __len or 1, "下载资源")
 
         #  Download & yield progress
@@ -610,11 +607,9 @@ class LocalThread:
             yield detailProgress.increase()
 
         # Writing data to files
-        yield stepProgress.update(text="将数据写入文件")
-        yield stepProgress.increase()
+        yield stepProgress.increase(text="将数据写入文件")
         yield from self._writeDataToFile()
-        yield stepProgress.update(text="整理数据")
-        yield stepProgress.increase()
+        yield stepProgress.increase(text="整理数据")
         self.__checkValid()
         self._fillLocalData()
         self.logger.info(f"存档 {self.threadId} 完成！")
