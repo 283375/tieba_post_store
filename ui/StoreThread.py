@@ -137,8 +137,13 @@ class StoreThread(QWidget):
         self._thread.exceptionOccured.connect(self.storeExceptionOccured)
         self._thread.actionFinal.connect(self.storeFinal)
         self._thread.progressUpdated.connect(self.updateProgress, Qt.BlockingQueuedConnection)
+
+        self.lzOnlyCheckBox.setEnabled(False)
+        self.assetsCheckBox.setEnabled(False)
+        self.portraitsCheckBox.setEnabled(False)
         self.storeStartButton.setEnabled(False)
         self.storeSuspendButton.setEnabled(True)
+
         self._thread.setLocalThread(self.localThread)
         self._thread.start()
 
@@ -172,5 +177,9 @@ class StoreThread(QWidget):
         self.__resetProgressBar(self.singleFileProgressBar)
         self.storeComplete.emit()
         signals.refreshWorkDirectory.emit()
+
+        self.lzOnlyCheckBox.setEnabled(True)
+        self.assetsCheckBox.setEnabled(True)
+        self.portraitsCheckBox.setEnabled(True)
         self.storeStartButton.setEnabled(True)
         self.storeSuspendButton.setEnabled(False)
