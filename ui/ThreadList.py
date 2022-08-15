@@ -4,7 +4,7 @@ from PySide6.QtWidgets import QStyleOptionViewItem
 from PySide6.QtGui import QPainter
 
 from PySide6.QtWidgets import QWidget, QListView, QLabel, QStackedLayout, QVBoxLayout, QStyledItemDelegate, QStyle
-from PySide6.QtCore import Qt, QRect, QAbstractListModel, QModelIndex, QByteArray, Signal, Slot
+from PySide6.QtCore import Qt, QRect, QAbstractListModel, QModelIndex, QByteArray, QThread, Signal, Slot
 from PySide6.QtGui import QPen, QFont, QFontMetrics, QColor, QBrush
 
 from .ThreadInfo import ThreadInfoWidget
@@ -141,6 +141,25 @@ class LocalThreadDisplayDelegate(QStyledItemDelegate):
         return QSize(maxWidth + self.horizontalPadding * 2, height + self.verticalPadding * 2)
 
 
+class ScanDirectoryThread(QThread):
+    scanningDir = Signal(str)
+    scanComplete = Signal(list)
+
+    def __init__(self, dir: str = "", parent=None):
+        super(ScanDirectoryThread, self).__init__(parent)
+        self.dir = dir
+
+    def run(self):
+        savedThreads = []
+
+        for dir, t in scanDirectory(self.dir):
+            self.scanningDir.emit(dir)
+            if type(t) == LocalThread and t.isValid:
+                savedThreads.append(t)
+
+        self.scanComplete.emit(savedThreads)
+
+
 class ThreadListWidget(QListView):
     listUpdated = Signal(list)
     selectedIndexChanged = Signal(QModelIndex)
@@ -160,16 +179,22 @@ class ThreadListWidget(QListView):
         self.doubleClicked.connect(self.__changeSelectedIndex)
 
     @Slot(str)
-    def workDirectoryChanged(self, workDirectory):
-        statusBar.showMessage(f"正在扫描 {workDirectory}")
-        app.processEvents()
+    def workDirectoryChanged(self, dir: str):
+        self.lastDirectory = dir
+        self.startScan(dir)
 
-        savedThreads = [t for dir, t in scanDirectory(workDirectory) if type(t) == LocalThread]
+    def startScan(self, dir: str):
+        self._thread = ScanDirectoryThread(dir)
+        _showScanningDir = lambda dir: statusBar.showMessage(f"正在检测 {dir}")
+        self._thread.scanningDir.connect(_showScanningDir)
+        self._thread.scanComplete.connect(self.scanComplete)
+        self._thread.start()
 
-        statusBar.showMessage(f"在 {workDirectory} 中找到了 {len(savedThreads)} 个有效存档目录", 10000)
+    @Slot(list)
+    def scanComplete(self, savedThreads: list[LocalThread]):
+        statusBar.showMessage(f"在 {self.lastDirectory} 中找到了 {len(savedThreads)} 个有效存档目录", 10000)
         self._model.updateList(savedThreads)
         self.listUpdated.emit(savedThreads)
-        self.lastDirectory = workDirectory
 
     @Slot()
     def refreshDirectory(self):
