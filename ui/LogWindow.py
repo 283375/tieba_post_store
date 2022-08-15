@@ -7,13 +7,17 @@ import logging
 from PySide6.QtWidgets import (
     QListView,
     QWidget,
+    QSpinBox,
+    QLabel,
+    QSpacerItem,
     QPushButton,
     QFileDialog,
     QMessageBox,
     QVBoxLayout,
     QHBoxLayout,
+    QSizePolicy,
 )
-from PySide6.QtCore import Qt, QAbstractListModel, QModelIndex, QByteArray
+from PySide6.QtCore import Qt, QAbstractListModel, QIdentityProxyModel, QModelIndex, QByteArray
 
 
 logger = logging.getLogger("root")
@@ -65,9 +69,68 @@ class LogRecordAbstractListModel(QAbstractListModel):
         return [rObj[self.LogRecordRole] for rObj in self.__logRecordList]
 
 
+class LogRecordDisplayLimitModel(QIdentityProxyModel):
+    displayLimit = 100
+
+    def setDisplayLimit(self, value: int):
+        self.beginResetModel()
+        self.displayLimit = value
+        self.endResetModel()
+
+    def rowCount(self, parent: Union[QModelIndex, QPersistentModelIndex] = None) -> int:
+        if self.sourceModel():
+            return (
+                self.sourceModel().rowCount(parent)
+                if self.sourceModel().rowCount(parent) < self.displayLimit
+                else self.displayLimit
+            )
+        else:
+            return 0
+
+    def data(self, proxyIndex: Union[QModelIndex, QPersistentModelIndex], role: int):
+        if self.sourceModel():
+            if self.rowCount() < self.displayLimit:
+                return self.sourceModel().data(proxyIndex, role)
+
+            offset = self.sourceModel().rowCount() - self.displayLimit
+            index = self.sourceModel().index(proxyIndex.row() + offset, proxyIndex.column())
+            return self.sourceModel().data(index, role)
+        else:
+            return None
+
+
 class LogWindowWidget(QWidget):
     def __init__(self, parent=None):
         super(LogWindowWidget, self).__init__(parent)
+
+        self.logLimitSpinBox = QSpinBox()
+        self.logLimitSpinBox.setMaximum(10000)
+        self.logLimitSpinBox.setSingleStep(10)
+        self.logLimitSpinBox.setValue(100)
+        self.logCountLabel = QLabel("0")
+        self.logLimitUpdatePushButton = QPushButton("更新显示限制")
+        spacer = QSpacerItem(1, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.upperWrapper = QHBoxLayout()
+        self.upperWrapper.addWidget(QLabel("显示"))
+        self.upperWrapper.addWidget(self.logLimitSpinBox)
+        self.upperWrapper.addWidget(QLabel(" / "))
+        self.upperWrapper.addWidget(self.logCountLabel)
+        self.upperWrapper.addWidget(QLabel(" 条日志"))
+        self.upperWrapper.addSpacerItem(spacer)
+        self.upperWrapper.addWidget(self.logLimitUpdatePushButton)
+
+        self._view = QListView(self)
+        self._view.setAcceptDrops(False)
+        self._view.setDragEnabled(False)
+        self._view.setSelectionMode(QListView.ExtendedSelection)
+
+        self._model = LogRecordAbstractListModel()
+        self._model.rowsInserted.connect(self.modelRowsInserted)
+        self._limitModel = LogRecordDisplayLimitModel()
+        self._limitModel.setSourceModel(self._model)
+        self.logLimitUpdatePushButton.clicked.connect(self.setLimitModelDisplayLimit)
+        self._view.setModel(self._limitModel)
+
         self.fileDialog = QFileDialog()
         self.buttonWrapper = QHBoxLayout()
         self.exportSelectionButton = QPushButton("导出选中日志")
@@ -77,18 +140,17 @@ class LogWindowWidget(QWidget):
         self.buttonWrapper.addWidget(self.exportSelectionButton)
         self.buttonWrapper.addWidget(self.exportAllButton)
 
-        self._view = QListView(self)
-        self._view.setAcceptDrops(False)
-        self._view.setDragEnabled(False)
-        self._view.setSelectionMode(QListView.ExtendedSelection)
-
-        self._model = LogRecordAbstractListModel()
-        self._model.rowsInserted.connect(self._view.scrollToBottom)
-        self._view.setModel(self._model)
-
         self.layout = QVBoxLayout(self)
+        self.layout.addLayout(self.upperWrapper)
         self.layout.addWidget(self._view)
         self.layout.addLayout(self.buttonWrapper)
+
+    def modelRowsInserted(self, topLeft: QModelIndex, bottomRight: QModelIndex, roles: list[int]):
+        self.logCountLabel.setText(str(self._model.rowCount()))
+        self._view.scrollToBottom()
+
+    def setLimitModelDisplayLimit(self):
+        self._limitModel.setDisplayLimit(self.logLimitSpinBox.value())
 
     def getSaveFilename(self, __time: time.struct_time = None):
         _time = __time or time.localtime()
