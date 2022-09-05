@@ -482,6 +482,7 @@ class LocalThread:
                     for part in req.iter_content(chunk_size=512):
                         size = f.write(part)
                         yield progress.increase(size if totalSize else 0)
+                break
             except (requests.ConnectTimeout, requests.ReadTimeout) as e:
                 if count + 1 == max_retry:
                     raise e
