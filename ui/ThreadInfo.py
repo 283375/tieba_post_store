@@ -29,6 +29,7 @@ class ThreadInfoWidget(QWidget):
         self.versionLabel = QLabel("")
         self.idLabel = QLabel("")
         self.titleLabel = QLabel("")
+        self.forumLabel = QLabel("")
         self.authorLabel = QLabel(" <br /> ")
         self.storeDirLabel = QLabel("")
         self.createTimeLabel = QLabel("")
@@ -37,6 +38,7 @@ class ThreadInfoWidget(QWidget):
         self.infoFormWrapper.addRow("存档版本", self.versionLabel)
         self.infoFormWrapper.addRow("贴子 ID", self.idLabel)
         self.infoFormWrapper.addRow("标题", self.titleLabel)
+        self.infoFormWrapper.addRow("发表于", self.forumLabel)
         self.infoFormWrapper.addRow("楼主", self.authorLabel)
         self.infoFormWrapper.addRow("存档于", self.storeDirLabel)
         self.infoFormWrapper.addRow("贴子发布时间", self.createTimeLabel)
@@ -64,12 +66,13 @@ class ThreadInfoWidget(QWidget):
 
         info = getLocalThreadInfo(self.localThread)
         _setText(self.versionLabel, info["__VERSION__"])
-        _setText(self.idLabel, info["threadId"])
+        _setText(self.idLabel, info["id"])
         _setText(self.titleLabel, info["title"])
         _setText(
             self.authorLabel,
             f'{info["author"]["displayName"]} <br /> (ID {info["author"]["id"]}，曾用名 {info["author"]["origName"]})',
         )
+        _setText(self.forumLabel, f'{info["forum"]["name"]}吧')
         _setText(self.storeDirLabel, info["storeDir"])
         _setText(self.createTimeLabel, formatTime(info["createTime"]))
         _setText(self.storedTimeLabel, formatTime(info["storeTime"]))

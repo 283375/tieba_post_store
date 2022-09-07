@@ -61,8 +61,8 @@ class ThreadListModel(QAbstractListModel):
             self.__threadList.append(
                 {
                     self.LocalThreadRole: t,
-                    self.TitleTextRole: f'{info["title"]} (ID: {info["threadId"]})',
-                    self.AuthorTextRole: f'楼主 {info["author"]["displayName"]} (曾用名 {info["author"]["origName"]})',
+                    self.TitleTextRole: f'{info["title"]} (ID: {info["id"]})',
+                    self.AuthorTextRole: f'{info["forum"]["name"]}吧 | 楼主 {info["author"]["displayName"]} (曾用名 {info["author"]["origName"]})',
                     self.StoreInfoTextRole: f'存档于 {info["storeDir"]}',
                     self.TitleTextQFontRole: self.TitleTextQFont,
                     self.AuthorTextQFontRole: self.AuthorTextQFont,

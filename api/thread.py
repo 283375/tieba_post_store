@@ -700,6 +700,10 @@ def getLocalThreadInfo(t: LocalThread):
             "displayName": None,
             "origName": None,
         },
+        "forum": {
+            "id": None,
+            "name": None,
+        },
         "storeDir": None,
         "createTime": None,
         "storeTime": None,
@@ -707,9 +711,10 @@ def getLocalThreadInfo(t: LocalThread):
     }
     # if ver == 1: 胎死腹中的破烂版本，没人用得着的
     if ver == 2:
-        info["threadId"] = t.threadInfo["id"]
+        info["id"] = t.threadInfo["id"]
         info["title"] = t.threadInfo["title"]
         info["author"] = t.threadInfo["author"]
+        info["forum"] = t.threadInfo["forum"]
         info["storeDir"] = t.storeDir
         info["createTime"] = int(t.threadInfo["createTime"]) * 1000
         info["storeTime"] = t.updateInfo["storeTime"]
