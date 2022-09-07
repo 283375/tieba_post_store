@@ -50,12 +50,12 @@ class ThreadListModel(QAbstractListModel):
 
     def updateList(self, _list: list[LocalThread]):
         _totalRow = self.rowCount()
-        self.beginRemoveRows(QModelIndex(), 0, _totalRow)
+        self.beginRemoveRows(QModelIndex(), 0, _totalRow - 1)
         self.__threadList.clear()
         self.endRemoveRows()
 
         _totalRow = len(_list)
-        self.beginInsertRows(QModelIndex(), 0, _totalRow)
+        self.beginInsertRows(QModelIndex(), 0, _totalRow - 1)
         for t in _list:
             info = getLocalThreadInfo(t)
             self.__threadList.append(
