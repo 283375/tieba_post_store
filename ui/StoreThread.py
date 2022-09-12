@@ -136,7 +136,9 @@ class StoreThread(QWidget):
         self._thread = StoreThreadThread()
         self._thread.exceptionOccured.connect(self.storeExceptionOccured)
         self._thread.actionFinal.connect(self.storeFinal)
-        self._thread.progressUpdated.connect(self.updateProgress, Qt.BlockingQueuedConnection)
+        self._thread.progressUpdated.connect(
+            self.updateProgress, Qt.BlockingQueuedConnection
+        )
 
         self.lzOnlyCheckBox.setEnabled(False)
         self.assetsCheckBox.setEnabled(False)

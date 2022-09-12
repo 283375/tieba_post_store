@@ -140,7 +140,9 @@ def miniApi(suffix, _params, _headers=None):
     reqParams = {**DEFAULT_PARAMS["params"], **_params}
     reqParams["sign"] = generateSign(reqParams)
     reqHeaders = {**DEFAULT_PARAMS["headers"], **_headers}
-    logger.debug(f"request {REQUEST_ADDRESS} with params {repr(reqParams)} and headers {repr(reqHeaders)}")
+    logger.debug(
+        f"request {REQUEST_ADDRESS} with params {repr(reqParams)} and headers {repr(reqHeaders)}"
+    )
     return requests.get(REQUEST_ADDRESS, params=reqParams, headers=reqHeaders)
 
 
@@ -153,7 +155,9 @@ def officialApi(suffix, _params, _headers=None):
     reqParams = {**DEFAULT_PARAMS["params"], **_params}
     reqParams["sign"] = generateSign(reqParams)
     reqHeaders = {**DEFAULT_PARAMS["headers"], **_headers}
-    logger.debug(f"request {REQUEST_ADDRESS} with params {repr(reqParams)} and headers {repr(reqHeaders)}")
+    logger.debug(
+        f"request {REQUEST_ADDRESS} with params {repr(reqParams)} and headers {repr(reqHeaders)}"
+    )
     return requests.get(REQUEST_ADDRESS, params=reqParams, headers=reqHeaders)
 
 

@@ -6,6 +6,7 @@ from typing import List, Dict, Callable
 
 logger = logging.getLogger("root")
 
+
 class HandlerNotCallableError(Exception):
     def __init__(self, handler):
         self.handler = handler
@@ -13,7 +14,9 @@ class HandlerNotCallableError(Exception):
     def __str__(self):
         return f"{(type(self.handler))}: {str(self.handler)} is not callable."
 
+
 signalEmitQueue = Queue(maxsize=0)
+
 
 def emitSignal():
     while True:
@@ -58,11 +61,13 @@ class KeepQueueAlive:
             self.__timer.cancel()
             self.__timer = None
 
+
 # signalEmitter = ...
-signalEmitter = Thread(target=emitSignal, daemon=True, name='signalEmitter')
+signalEmitter = Thread(target=emitSignal, daemon=True, name="signalEmitter")
 signalEmitter.start()
 keepQueueAliveInstance = KeepQueueAlive()
 keepQueueAliveInstance.run()
+
 
 class SimpleSignal:
     def __init__(self):
@@ -91,6 +96,7 @@ class SimpleSignal:
     def emit(self, *args, **kwargs):
         if self.handlers:
             signalEmitQueue.put((self.handlers, args, kwargs))
+
 
 """
 class SimpleSignalByName:

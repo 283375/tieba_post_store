@@ -47,7 +47,11 @@ class TiebaAsset:
         return self.__kwargs.get(key)
 
     def toDict(self):
-        basic = {"type": self.getRoleName(), "src": self.src, "filename": self.filename}
+        basic = {
+            "type": self.getRoleName(),
+            "src": self.src,
+            "filename": self.filename,
+        }
         kwargs = self.__kwargs
         if self.type == self.Image:
             basic |= {"id": kwargs["id"], "size": kwargs["size"]}
@@ -178,14 +182,20 @@ class RemoteThread(LightRemoteThread):
                 subpostNum = int(post["sub_post_number"])
                 if subpostNum > 0:
                     subposts = []
-                    self.logger.debug(f'处理 {self.threadId} > P{page} > 楼中楼 {post["id"]} 数据')
+                    self.logger.debug(
+                        f'处理 {self.threadId} > P{page} > 楼中楼 {post["id"]} 数据'
+                    )
                     preRequest = getSubPost(self.threadId, post["id"], page=1)
                     subposts += preRequest["subpost_list"]
                     if int(preRequest["page"]["total_page"]) > 1:
                         pages = range(2, int(preRequest["page"]["total_page"]) + 1)
                         for _page in pages:
-                            self.logger.debug(f'请求 {self.threadId} > P{page} > 楼中楼 {post["id"]} > P{_page} 数据')
-                            subposts += getSubPost(self.threadId, post["id"], page=_page)["subpost_list"]
+                            self.logger.debug(
+                                f'请求 {self.threadId} > P{page} > 楼中楼 {post["id"]} > P{_page} 数据'
+                            )
+                            subposts += getSubPost(self.threadId, post["id"], page=_page)[
+                                "subpost_list"
+                            ]
                     post["sub_post_list"] = subposts
                 yield postProgress.increase()
             yield pageProgress.update(page)
@@ -407,7 +417,9 @@ class LocalThread:
             if newThreadId:
                 raise self.LocalThreadNoOverwriteError()
             self._fillLocalData()
-        self.remoteThread = RemoteThread(self.threadId, self.storeOptions["lzOnly"], lazyRequest=True)
+        self.remoteThread = RemoteThread(
+            self.threadId, self.storeOptions["lzOnly"], lazyRequest=True
+        )
 
     @property
     def threadId(self):
@@ -442,7 +454,10 @@ class LocalThread:
         """
         overwriteOptions = deepcopy(_overwriteOptions)
         overwriteOptions.pop("__VERSION__", None)
-        for storeOpt, dirName in [("assets", "assets"), ("portraits", "portraits")]:
+        for storeOpt, dirName in [
+            ("assets", "assets"),
+            ("portraits", "portraits"),
+        ]:
             if overwriteOptions.get(storeOpt, False):
                 os.makedirs(os.path.join(self.storeDir, dirName), exist_ok=True)
         self.storeOptions = {**self.storeOptions, **overwriteOptions}
@@ -462,9 +477,15 @@ class LocalThread:
             self.users = loadLocalJson("users.json")
 
             if self.storeOptions["assets"]:
-                self.assets = [TiebaAsset().loadFromDict(_dict) for _dict in loadLocalJson("assets.json")]
+                self.assets = [
+                    TiebaAsset().loadFromDict(_dict)
+                    for _dict in loadLocalJson("assets.json")
+                ]
             if self.storeOptions["portraits"]:
-                self.portraits = [TiebaAsset().loadFromDict(_dict) for _dict in loadLocalJson("portraits.json")]
+                self.portraits = [
+                    TiebaAsset().loadFromDict(_dict)
+                    for _dict in loadLocalJson("portraits.json")
+                ]
         except FileNotFoundError as e:
             raise self.LocalThreadInvalidError() from e
 
@@ -476,7 +497,9 @@ class LocalThread:
             try:
                 with open(filepath, "wb") as f:
                     req = requests.get(src, stream=True)
-                    progress = Progress("LocalThread-DownloadAsset", type=Progress.Type_Byte)
+                    progress = Progress(
+                        "LocalThread-DownloadAsset", type=Progress.Type_Byte
+                    )
                     totalSize = int(req.headers.get("Content-Length", 0))
                     progress.update(0, totalSize, progressText)
                     for part in req.iter_content(chunk_size=512):
@@ -495,12 +518,18 @@ class LocalThread:
             os.makedirs(assetSortedDir, exist_ok=True)
 
             self.logger.debug(f"正在保存资源 {asset.filename}: {asset.src}")
-            yield from self._requestAsset(os.path.join(assetSortedDir, asset.filename), asset.src, asset.filename)
+            yield from self._requestAsset(
+                os.path.join(assetSortedDir, asset.filename),
+                asset.src,
+                asset.filename,
+            )
             yield asset
 
     def _storePortraits(self, portraits: list[TiebaAsset] = None):
         for portrait in portraits:
-            self.logger.debug(f'正在保存头像 {portrait.get("portrait")}(ID {portrait.get("id")})')
+            self.logger.debug(
+                f'正在保存头像 {portrait.get("portrait")}(ID {portrait.get("id")})'
+            )
             portraitPath = os.path.join(self.portraitDir, portrait.filename)
             yield from self._requestAsset(portraitPath, portrait.src, portrait.get("id"))
             yield portrait
@@ -512,7 +541,12 @@ class LocalThread:
             "w",
             encoding="utf-8",
         ) as f:
-            json.dump({"__storeTimestamp": timestamp, **self.origData}, f, ensure_ascii=False, indent=2)
+            json.dump(
+                {"__storeTimestamp": timestamp, **self.origData},
+                f,
+                ensure_ascii=False,
+                indent=2,
+            )
 
     def _writeDataToFile(self):
         __len = 4 + int(self.storeOptions["assets"]) + int(self.storeOptions["portraits"])
@@ -633,8 +667,12 @@ class LocalThread:
             if floorNum in newFloors and floorNum in oldFloors:
                 floor = newFloors.get(floorNum, oldFloors.get(floorNum))
                 # 单独更新楼中楼（以防回复被举报/异常消失等情况）
-                oldSubPosts = {sp["id"]: sp for sp in oldFloors[floorNum]["sub_post_list"]}
-                newSubPosts = {sp["id"]: sp for sp in newFloors[floorNum]["sub_post_list"]}
+                oldSubPosts = {
+                    sp["id"]: sp for sp in oldFloors[floorNum]["sub_post_list"]
+                }
+                newSubPosts = {
+                    sp["id"]: sp for sp in newFloors[floorNum]["sub_post_list"]
+                }
                 subPosts = sorted(
                     list((oldSubPosts | newSubPosts).values()),
                     key=lambda x: int(x["id"]),
@@ -667,12 +705,18 @@ class LocalThread:
         else:
             combinedAssets = newAssets + oldAssets
             duplicatedAssets = list(set(combinedAssets))
-            downloadAssets = [assetObj for assetObj in combinedAssets if assetObj not in duplicatedAssets]
+            downloadAssets = [
+                assetObj
+                for assetObj in combinedAssets
+                if assetObj not in duplicatedAssets
+            ]
             self.assets = combinedAssets
 
         return downloadAssets
 
-    def _updatePortraits(self, _new: list[TiebaAsset] = None, _old: list[TiebaAsset] = None) -> list:
+    def _updatePortraits(
+        self, _new: list[TiebaAsset] = None, _old: list[TiebaAsset] = None
+    ) -> list:
         # WARNING: NOT TESTED
         newPortraits = set(_new or self.remoteThread.getFullPortraits() or [])
         oldPortraits = set(_old or self.portraits or [])

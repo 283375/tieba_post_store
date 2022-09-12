@@ -17,7 +17,13 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QSizePolicy,
 )
-from PySide6.QtCore import Qt, QAbstractListModel, QIdentityProxyModel, QModelIndex, QByteArray
+from PySide6.QtCore import (
+    Qt,
+    QAbstractListModel,
+    QIdentityProxyModel,
+    QModelIndex,
+    QByteArray,
+)
 
 
 logger = logging.getLogger("root")
@@ -43,7 +49,10 @@ class LogRecordAbstractListModel(QAbstractListModel):
         return len(self.__logRecordList)
 
     def roleNames(self) -> dict[int, QByteArray]:
-        return {**super().roleNames(), self.LogRecordRole: QByteArray(b"LogRecord")}
+        return {
+            **super().roleNames(),
+            self.LogRecordRole: QByteArray(b"LogRecord"),
+        }
 
     def data(
         self,
@@ -93,7 +102,9 @@ class LogRecordDisplayLimitModel(QIdentityProxyModel):
                 return self.sourceModel().data(proxyIndex, role)
 
             offset = self.sourceModel().rowCount() - self.displayLimit
-            index = self.sourceModel().index(proxyIndex.row() + offset, proxyIndex.column())
+            index = self.sourceModel().index(
+                proxyIndex.row() + offset, proxyIndex.column()
+            )
             return self.sourceModel().data(index, role)
         else:
             return None
@@ -145,7 +156,9 @@ class LogWindowWidget(QWidget):
         self.layout.addWidget(self._view)
         self.layout.addLayout(self.buttonWrapper)
 
-    def modelRowsInserted(self, topLeft: QModelIndex, bottomRight: QModelIndex, roles: list[int]):
+    def modelRowsInserted(
+        self, topLeft: QModelIndex, bottomRight: QModelIndex, roles: list[int]
+    ):
         self.logCountLabel.setText(str(self._model.rowCount()))
         self._view.scrollToBottom()
 
@@ -176,7 +189,9 @@ class LogWindowWidget(QWidget):
             QMessageBox.warning(self, "导不出来", "没有日志可供导出")
 
     def exportSelection(self):
-        if records := [i.data(self._model.LogRecordRole) for i in self._view.selectedIndexes()]:
+        if records := [
+            i.data(self._model.LogRecordRole) for i in self._view.selectedIndexes()
+        ]:
             if filename := self.getSaveFilename()[0]:
                 self._writeLogToFile(filename, records)
         else:

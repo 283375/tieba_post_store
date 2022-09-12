@@ -3,8 +3,25 @@ from PySide6.QtCore import QPersistentModelIndex, QSize
 from PySide6.QtWidgets import QStyleOptionViewItem
 from PySide6.QtGui import QPainter
 
-from PySide6.QtWidgets import QWidget, QListView, QLabel, QStackedLayout, QVBoxLayout, QStyledItemDelegate, QStyle
-from PySide6.QtCore import Qt, QRect, QAbstractListModel, QModelIndex, QByteArray, QThread, Signal, Slot
+from PySide6.QtWidgets import (
+    QWidget,
+    QListView,
+    QLabel,
+    QStackedLayout,
+    QVBoxLayout,
+    QStyledItemDelegate,
+    QStyle,
+)
+from PySide6.QtCore import (
+    Qt,
+    QRect,
+    QAbstractListModel,
+    QModelIndex,
+    QByteArray,
+    QThread,
+    Signal,
+    Slot,
+)
 from PySide6.QtGui import QPen, QFont, QFontMetrics, QColor, QBrush
 
 from .ThreadInfo import ThreadInfoWidget
@@ -37,7 +54,10 @@ class ThreadListModel(QAbstractListModel):
         return len(self.__threadList)
 
     def roleNames(self) -> dict[int, QByteArray]:
-        return {**super().roleNames(), self.LocalThreadRole: QByteArray(b"LocalThread")}
+        return {
+            **super().roleNames(),
+            self.LocalThreadRole: QByteArray(b"LocalThread"),
+        }
 
     def data(
         self,
@@ -84,13 +104,25 @@ class LocalThreadDisplayDelegate(QStyledItemDelegate):
     def __getTextAndQFonts(self, index: Union[QModelIndex, QPersistentModelIndex]):
         model = ThreadListModel
         return [
-            [index.data(model.TitleTextRole), index.data(model.TitleTextQFontRole)],
-            [index.data(model.AuthorTextRole), index.data(model.AuthorTextQFontRole)],
-            [index.data(model.StoreInfoTextRole), index.data(model.StoreInfoTextQFontRole)],
+            [
+                index.data(model.TitleTextRole),
+                index.data(model.TitleTextQFontRole),
+            ],
+            [
+                index.data(model.AuthorTextRole),
+                index.data(model.AuthorTextQFontRole),
+            ],
+            [
+                index.data(model.StoreInfoTextRole),
+                index.data(model.StoreInfoTextQFontRole),
+            ],
         ]
 
     def paint(
-        self, painter: QPainter, option: QStyleOptionViewItem, index: Union[QModelIndex, QPersistentModelIndex]
+        self,
+        painter: QPainter,
+        option: QStyleOptionViewItem,
+        index: Union[QModelIndex, QPersistentModelIndex],
     ) -> None:
         painter.save()
 
@@ -128,7 +160,11 @@ class LocalThreadDisplayDelegate(QStyledItemDelegate):
 
         painter.restore()
 
-    def sizeHint(self, option: QStyleOptionViewItem, index: Union[QModelIndex, QPersistentModelIndex]) -> QSize:
+    def sizeHint(
+        self,
+        option: QStyleOptionViewItem,
+        index: Union[QModelIndex, QPersistentModelIndex],
+    ) -> QSize:
         maxWidth = 0
         height = 0
         for _ in self.__getTextAndQFonts(index):
@@ -138,7 +174,10 @@ class LocalThreadDisplayDelegate(QStyledItemDelegate):
             width = fm.horizontalAdvance(text)
             if maxWidth < width:
                 maxWidth = width
-        return QSize(maxWidth + self.horizontalPadding * 2, height + self.verticalPadding * 2)
+        return QSize(
+            maxWidth + self.horizontalPadding * 2,
+            height + self.verticalPadding * 2,
+        )
 
 
 class ScanDirectoryThread(QThread):
@@ -192,7 +231,9 @@ class ThreadListWidget(QListView):
 
     @Slot(list)
     def scanComplete(self, savedThreads: list[LocalThread]):
-        statusBar.showMessage(f"在 {self.lastDirectory} 中找到了 {len(savedThreads)} 个有效存档目录", 10000)
+        statusBar.showMessage(
+            f"在 {self.lastDirectory} 中找到了 {len(savedThreads)} 个有效存档目录", 10000
+        )
         self._model.updateList(savedThreads)
         self.listUpdated.emit(savedThreads)
 

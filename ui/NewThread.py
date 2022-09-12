@@ -23,7 +23,9 @@ class NewThreadParseInputDialog(QDialog):
         super(NewThreadParseInputDialog, self).__init__(parent)
         self.setWindowTitle("New Thread")
         self.layout = QVBoxLayout(self)
-        self.tipLabel = QLabel("请输入贴子的 ID 或网页链接。<br />如 7741777833 或 https://tieba.baidu.com/p/7741777833")
+        self.tipLabel = QLabel(
+            "请输入贴子的 ID 或网页链接。<br />如 7741777833 或 https://tieba.baidu.com/p/7741777833"
+        )
         self.edit = QLineEdit()
         self.edit.setPlaceholderText("在此处输入……")
         self.edit.setClearButtonEnabled(True)
@@ -66,7 +68,9 @@ class NewThreadConfirmDialog(QDialog):
             self.info = t.getThreadInfo()
             self.storeDir = abspath(join(workDirectoryInstance.dir, self.info["id"]))
             self.idLabel.setText(self.info["id"])
-            self.titleLabel.setText(f'【{self.info["forum"]["name"]}吧】{self.info["title"]}')
+            self.titleLabel.setText(
+                f'【{self.info["forum"]["name"]}吧】{self.info["title"]}'
+            )
             self.authorLabel.setText(f'楼主 {self.info["author"]["displayName"]}')
             self.storeDirLabel.setText(self.storeDir)
             self.storeThread.setLocalThread(LocalThread(self.storeDir, self.threadId))

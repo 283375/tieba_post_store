@@ -26,4 +26,8 @@ def bigNumberChinese(val):
 
 
 def byte(val):
-    return __generalFormat(val, 1024 if os.name == "nt" else 1000, ["B", "KB", "MB", "GB", "TB", "PB"])
+    return __generalFormat(
+        val,
+        1024 if os.name == "nt" else 1000,
+        ["B", "KB", "MB", "GB", "TB", "PB"],
+    )
