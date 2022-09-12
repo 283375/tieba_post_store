@@ -208,7 +208,7 @@ class ThreadListWidget(QListView):
 class ThreadInfoStackedWidget(QWidget):
     emptyWidget = QWidget()
     emptyWidget.layout = QVBoxLayout(emptyWidget)
-    emptyWidget.layout.addWidget(QLabel("未找到任何存档"))
+    emptyWidget.layout.addWidget(QLabel("未选择任何存档"))
     emptyWidget.layout.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
 
     placeholderWidget = QWidget()
