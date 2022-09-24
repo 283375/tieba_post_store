@@ -1,6 +1,6 @@
 import sys
 
-from ui.MainWindow import *
+from ui.Entry import *
 
 # fmt: off
 # import time
