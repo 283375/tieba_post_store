@@ -25,7 +25,7 @@ from PySide6.QtCore import (
 from PySide6.QtGui import QPen, QFont, QFontMetrics, QColor, QBrush
 
 from .ThreadInfo import ThreadInfoWidget
-from ._vars import app, statusBar
+from ui._vars import app, statusBar
 from api.workDirectory import scanDirectory
 from api.thread import LocalThread, getLocalThreadInfo
 

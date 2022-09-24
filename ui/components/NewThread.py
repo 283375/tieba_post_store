@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, Slot
 
 from api.thread import LightRemoteThread, LocalThread
-from ._vars import workDirectoryInstance, statusBar
+from ui._vars import workDirectoryInstance, statusBar
 from .StoreThread import StoreThread
 
 

@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (
     QFileDialog,
     QHBoxLayout,
 )
-from ._vars import workDirectoryInstance
+from ui._vars import workDirectoryInstance
 
 logger = logging.getLogger("root")
 

@@ -9,7 +9,8 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 
-from . import _vars, WorkDirectory, ThreadList, NewThread, ThreadInfo, LogWindow
+from . import _vars,  LogWindow
+from .components import ThreadInfo, WorkDirectory, NewThread, ThreadList
 
 logger = logging.getLogger("root")
 logger.setLevel(logging.DEBUG)
