@@ -6,7 +6,7 @@ from api.thread import LocalThread
 logger = logging.getLogger("root.api.workDirectory")
 
 
-def scanDirectory(_rootPath: str) -> list:
+def scanDirectory(_rootPath: str):
     rootPath = os.path.abspath(_rootPath)
     logger.info(f"开始扫描 {rootPath}")
     for directory in os.listdir(rootPath):
