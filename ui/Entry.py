@@ -9,8 +9,8 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 
-from . import _vars,  LogWindow
-from .components import ThreadInfo, WorkDirectory, NewThread, ThreadList
+from . import _vars,  LogWindow, FindInvalid
+from .components import WorkDirectory, NewThread, ThreadList
 
 logger = logging.getLogger("root")
 logger.setLevel(logging.DEBUG)
@@ -23,6 +23,7 @@ threadListWidget = ThreadList.ThreadListWidget()
 threadInfoStackedWidget = ThreadList.ThreadInfoStackedWidget()
 newThreadWidget = NewThread.NewThreadEntryWidget()
 logWindowWidget = LogWindow.LogWindowWidget()
+findInvalidWidget = FindInvalid.FindInvalid()
 
 _vars.workDirectoryInstance.dirChanged.connect(threadListWidget.workDirectoryChanged)
 _vars.signals.refreshWorkDirectory.connect(threadListWidget.refreshDirectory)
@@ -58,6 +59,7 @@ indexWrapper.layout.addWidget(workDirectoryWidget)
 indexWrapper.layout.addLayout(indexLowerWrapper)
 
 tab.addTab(indexWrapper, "Index")
+tab.addTab(findInvalidWidget, "Find Invalid")
 tab.addTab(logWindowWidget, "Log")
 
 centralWidget = QWidget()
