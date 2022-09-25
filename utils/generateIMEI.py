@@ -4,10 +4,7 @@ number_list = [str(n) for n in range(10)]
 
 
 def generateRandomIMEI():
-    imei = ""
-    for i in range(14):
-        imei += random.choice(number_list)
-
+    imei = "".join(random.choice(number_list) for _ in range(14))
     even_num = 0
     check_num = 0
     for i in range(1, 15):
@@ -22,11 +19,7 @@ def generateRandomIMEI():
             check_num += int(imei[i - 1])
 
     check_num %= 10
-    if check_num == 0:
-        check_num = 0
-    else:
-        check_num = 10 - check_num
-
+    check_num = 0 if check_num == 0 else 10 - check_num
     return imei + str(check_num)
 
 
