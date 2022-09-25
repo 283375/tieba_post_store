@@ -6,7 +6,7 @@ from utils.generateIMEI import generateRandomIMEI
 
 
 def generateFinalCUID(_imei):
-    imei = _imei if _imei else generateRandomIMEI()
+    imei = _imei or generateRandomIMEI()
 
     def getCUID():
         randomString = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -21,4 +21,4 @@ def generateFinalCUID(_imei):
     # if (TextUtils.isEmpty(imei)) {
     #     imei = "0"
     # }
-    return getCUID() + "|" + "".join(reversed(imei))
+    return f"{getCUID()}|" + "".join(reversed(imei))
