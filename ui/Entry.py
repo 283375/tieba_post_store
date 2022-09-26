@@ -1,16 +1,9 @@
 import logging
 
-from PySide6.QtWidgets import (
-    QMainWindow,
-    QWidget,
-    QTabWidget,
-    QVBoxLayout,
-    QHBoxLayout,
-)
-from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QMainWindow, QWidget, QTabWidget, QVBoxLayout
 
-from . import _vars, LogWindow, FindInvalid
-from .components import WorkDirectory, NewThread, ThreadList
+from ui import _vars, Index, LogWindow, FindInvalid
+from ui.components import WorkDirectory, NewThread, ThreadList
 
 logger = logging.getLogger("root")
 logger.setLevel(logging.DEBUG)
@@ -18,17 +11,20 @@ logger.setLevel(logging.DEBUG)
 app = _vars.app
 
 tab = QTabWidget()
-workDirectoryWidget = WorkDirectory.ChangeWorkDirectory()
-threadListWidget = ThreadList.ThreadListWidget()
-threadInfoStackedWidget = ThreadList.ThreadInfoStackedWidget()
-newThreadWidget = NewThread.NewThreadEntryWidget()
+indexWidget = Index.IndexWidget()
 logWindowWidget = LogWindow.LogWindowWidget()
 findInvalidWidget = FindInvalid.FindInvalid()
 
-_vars.workDirectoryInstance.dirChanged.connect(threadListWidget.workDirectoryChanged)
-_vars.signals.refreshWorkDirectory.connect(threadListWidget.refreshDirectory)
-threadListWidget.listUpdated.connect(threadInfoStackedWidget.updateList)
-threadListWidget.selectedIndexChanged.connect(threadInfoStackedWidget.setCurrentIndex)
+_vars.workDirectoryInstance.dirChanged.connect(
+    indexWidget.threadListWidget.workDirectoryChanged
+)
+_vars.signals.refreshWorkDirectory.connect(indexWidget.threadListWidget.refreshDirectory)
+indexWidget.threadListWidget.listUpdated.connect(
+    indexWidget.threadInfoStackedWidget.updateList
+)
+indexWidget.threadListWidget.selectedIndexChanged.connect(
+    indexWidget.threadInfoStackedWidget.setCurrentIndex
+)
 
 
 class LogWindowForwardHandler(logging.Handler):
@@ -39,26 +35,7 @@ class LogWindowForwardHandler(logging.Handler):
 
 logger.addHandler(LogWindowForwardHandler())
 
-threadListWidget.setMaximumWidth(300)
-newThreadWidget.setMaximumWidth(200)
-listWrapper = QWidget()
-listWrapper.setMaximumWidth(300)
-listWrapper.layout = QVBoxLayout(listWrapper)
-listWrapper.layout.setAlignment(Qt.AlignVCenter | Qt.AlignTop)
-listWrapper.layout.addWidget(threadListWidget)
-listWrapper.layout.addWidget(newThreadWidget)
-
-indexLowerWrapper = QHBoxLayout()
-indexLowerWrapper.setStretch(0, 0)
-indexLowerWrapper.addWidget(listWrapper)
-indexLowerWrapper.addWidget(threadInfoStackedWidget)
-
-indexWrapper = QWidget()
-indexWrapper.layout = QVBoxLayout(indexWrapper)
-indexWrapper.layout.addWidget(workDirectoryWidget)
-indexWrapper.layout.addLayout(indexLowerWrapper)
-
-tab.addTab(indexWrapper, "Index")
+tab.addTab(indexWidget, "Index")
 tab.addTab(findInvalidWidget, "Find Invalid")
 tab.addTab(logWindowWidget, "Log")
 
