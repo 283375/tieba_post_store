@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 
-from . import _vars,  LogWindow, FindInvalid
+from . import _vars, LogWindow, FindInvalid
 from .components import WorkDirectory, NewThread, ThreadList
 
 logger = logging.getLogger("root")

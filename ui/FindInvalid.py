@@ -147,5 +147,7 @@ class FindInvalid(QWidget):
                     )
                     continue
             else:
-                QMessageBox.warning(self, "Warning", f"{absDir} does not exist, skipping.")
+                QMessageBox.warning(
+                    self, "Warning", f"{absDir} does not exist, skipping."
+                )
                 continue
