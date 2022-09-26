@@ -1,5 +1,8 @@
 # tieba_post_store
 
+> 目前开发环境：Python ^3.10.6
+> 计划支持：Python ^3.8
+
 > 这是什么？
 
 保存贴吧贴子用的。
