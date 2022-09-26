@@ -1,6 +1,3 @@
-from typing import Union
-from PySide6.QtCore import QPersistentModelIndex
-
 import time
 import logging
 
@@ -54,11 +51,7 @@ class LogRecordAbstractListModel(QAbstractListModel):
             self.LogRecordRole: QByteArray(b"LogRecord"),
         }
 
-    def data(
-        self,
-        index: Union[QModelIndex, QPersistentModelIndex],
-        role: int = Qt.DisplayRole,
-    ):
+    def data(self, index: QModelIndex, role: int = Qt.DisplayRole):
         if not index.isValid() or index.row() >= self.rowCount():
             return None
         return self.__logRecordList[index.row()].get(role)
@@ -86,7 +79,7 @@ class LogRecordDisplayLimitModel(QIdentityProxyModel):
         self.displayLimit = value
         self.endResetModel()
 
-    def rowCount(self, parent: Union[QModelIndex, QPersistentModelIndex] = None) -> int:
+    def rowCount(self, parent: QModelIndex = None) -> int:
         if self.sourceModel():
             return (
                 self.sourceModel().rowCount(parent)
@@ -96,7 +89,7 @@ class LogRecordDisplayLimitModel(QIdentityProxyModel):
         else:
             return 0
 
-    def data(self, proxyIndex: Union[QModelIndex, QPersistentModelIndex], role: int):
+    def data(self, proxyIndex: QModelIndex, role: int):
         if self.sourceModel():
             if self.rowCount() < self.displayLimit:
                 return self.sourceModel().data(proxyIndex, role)

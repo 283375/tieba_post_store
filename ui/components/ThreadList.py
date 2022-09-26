@@ -1,5 +1,5 @@
-from typing import Any, Union
-from PySide6.QtCore import QPersistentModelIndex, QSize
+from typing import Any
+from PySide6.QtCore import QSize
 from PySide6.QtWidgets import QStyleOptionViewItem
 from PySide6.QtGui import QPainter
 
@@ -59,11 +59,7 @@ class ThreadListModel(QAbstractListModel):
             self.LocalThreadRole: QByteArray(b"LocalThread"),
         }
 
-    def data(
-        self,
-        index: Union[QModelIndex, QPersistentModelIndex],
-        role: int = 20,
-    ):
+    def data(self, index: QModelIndex, role: int = 20):
         if not index.isValid() or index.row() >= self.rowCount():
             return None
         return self.__threadList[index.row()].get(role)
@@ -101,7 +97,7 @@ class LocalThreadDisplayDelegate(QStyledItemDelegate):
     borderBaseColor = (0x58, 0xB6, 0xFB)
     fillColor = (0x4F, 0x41, 0xC2)
 
-    def __getTextAndQFonts(self, index: Union[QModelIndex, QPersistentModelIndex]):
+    def __getTextAndQFonts(self, index: QModelIndex):
         model = ThreadListModel
         return [
             [
@@ -119,10 +115,7 @@ class LocalThreadDisplayDelegate(QStyledItemDelegate):
         ]
 
     def paint(
-        self,
-        painter: QPainter,
-        option: QStyleOptionViewItem,
-        index: Union[QModelIndex, QPersistentModelIndex],
+        self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex
     ) -> None:
         painter.save()
 
@@ -160,11 +153,7 @@ class LocalThreadDisplayDelegate(QStyledItemDelegate):
 
         painter.restore()
 
-    def sizeHint(
-        self,
-        option: QStyleOptionViewItem,
-        index: Union[QModelIndex, QPersistentModelIndex],
-    ) -> QSize:
+    def sizeHint(self, option: QStyleOptionViewItem, index: QModelIndex) -> QSize:
         maxWidth = 0
         height = 0
         for _ in self.__getTextAndQFonts(index):
