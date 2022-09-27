@@ -18,15 +18,13 @@ from PySide6.QtCore import (
     QAbstractListModel,
     QModelIndex,
     QByteArray,
-    QThread,
     Signal,
     Slot,
 )
 from PySide6.QtGui import QPen, QFont, QFontMetrics, QColor, QBrush
 
 from .ThreadInfo import ThreadInfoWidget
-from ui._vars import app, statusBar
-from api.workDirectory import scanDirectory
+from ui._vars import statusBar, workDirectoryInstance
 from api.thread import LocalThread, getLocalThreadInfo
 
 
@@ -169,28 +167,8 @@ class LocalThreadDisplayDelegate(QStyledItemDelegate):
         )
 
 
-class ScanDirectoryThread(QThread):
-    scanningDir = Signal(str)
-    scanComplete = Signal(list)
-
-    def __init__(self, dir: str = "", parent=None):
-        super(ScanDirectoryThread, self).__init__(parent)
-        self.dir = dir
-
-    def run(self):
-        savedThreads = []
-
-        for dir, t in scanDirectory(self.dir):
-            self.scanningDir.emit(dir)
-            if type(t) == LocalThread and t.isValid:
-                savedThreads.append(t)
-
-        self.scanComplete.emit(savedThreads)
-
-
 class ThreadListWidget(QListView):
-    listUpdated = Signal(list)
-    selectedIndexChanged = Signal(QModelIndex)
+    threadSelected = Signal(LocalThread)
 
     def __init__(self, parent=None):
         super(ThreadListWidget, self).__init__(parent)
@@ -198,68 +176,21 @@ class ThreadListWidget(QListView):
         self.setSelectionRectVisible(True)
         self.setDragEnabled(False)
         self.setAcceptDrops(False)
-        self.lastDirectory = None
 
         self._model = ThreadListModel()
         self.setModel(self._model)
         self.setItemDelegate(LocalThreadDisplayDelegate())
 
-        self.doubleClicked.connect(self.__changeSelectedIndex)
-
-    @Slot(str)
-    def workDirectoryChanged(self, dir: str):
-        self.lastDirectory = dir
-        self.startScan(dir)
-
-    def startScan(self, dir: str):
-        self._thread = ScanDirectoryThread(dir)
-        _showScanningDir = lambda dir: statusBar.showMessage(f"正在检测 {dir}")
-        self._thread.scanningDir.connect(_showScanningDir)
-        self._thread.scanComplete.connect(self.scanComplete)
-        self._thread.start()
+        self.doubleClicked.connect(self.__selectIndexChanged)
 
     @Slot(list)
-    def scanComplete(self, savedThreads: list[LocalThread]):
+    def dirScanComplete(self, validResult: list[tuple[str, LocalThread]]):
         statusBar.showMessage(
-            f"在 {self.lastDirectory} 中找到了 {len(savedThreads)} 个有效存档目录", 10000
+            f"在 {workDirectoryInstance.dir} 中找到了 {len(validResult)} 个有效存档目录", 10000
         )
-        self._model.updateList(savedThreads)
-        self.listUpdated.emit(savedThreads)
-
-    @Slot()
-    def refreshDirectory(self):
-        self.workDirectoryChanged(self.lastDirectory)
+        self._model.updateList([t for dir, t in validResult])
 
     @Slot(QModelIndex)
-    def __changeSelectedIndex(self, index: QModelIndex):
-        self.selectedIndexChanged.emit(index)
-
-
-class ThreadInfoStackedWidget(QWidget):
-    emptyWidget = QWidget()
-    emptyWidget.layout = QVBoxLayout(emptyWidget)
-    emptyWidget.layout.addWidget(QLabel("未选择任何存档"))
-    emptyWidget.layout.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
-
-    placeholderWidget = QWidget()
-    placeholderWidget.layout = QVBoxLayout(placeholderWidget)
-    placeholderWidget.setVisible(False)
-
-    def __init__(self, parent=None):
-        super(ThreadInfoStackedWidget, self).__init__(parent)
-        self.layout: QStackedLayout = QStackedLayout(self)
-        self.layout.insertWidget(0, self.emptyWidget)
-
-    @Slot(list)
-    def updateList(self, _list: list[LocalThread]) -> None:
-        for i in range(self.layout.count()):
-            self.layout.insertWidget(i, self.placeholderWidget)
-
-        for i, lt in enumerate(_list):
-            widget = ThreadInfoWidget()
-            widget.setLocalThread(lt)
-            self.layout.insertWidget(i, widget)
-
-    @Slot(QModelIndex)
-    def setCurrentIndex(self, i: QModelIndex):
-        self.layout.setCurrentIndex(i.row())
+    def __selectIndexChanged(self, index: QModelIndex):
+        localThread = self._model.data(index, ThreadListModel.LocalThreadRole)
+        self.threadSelected.emit(localThread)

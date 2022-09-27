@@ -3,7 +3,6 @@ import logging
 from PySide6.QtWidgets import QMainWindow, QWidget, QTabWidget, QVBoxLayout
 
 from ui import _vars, Index, LogWindow, FindInvalid
-from ui.components import WorkDirectory, NewThread, ThreadList
 
 logger = logging.getLogger("root")
 logger.setLevel(logging.DEBUG)
@@ -15,16 +14,11 @@ indexWidget = Index.IndexWidget()
 logWindowWidget = LogWindow.LogWindowWidget()
 findInvalidWidget = FindInvalid.FindInvalid()
 
-_vars.workDirectoryInstance.dirChanged.connect(
-    indexWidget.threadListWidget.workDirectoryChanged
+_vars.workDirectoryInstance.dirScanValidResult.connect(
+    indexWidget.threadListWidget.dirScanComplete
 )
-_vars.signals.refreshWorkDirectory.connect(indexWidget.threadListWidget.refreshDirectory)
-indexWidget.threadListWidget.listUpdated.connect(
-    indexWidget.threadInfoStackedWidget.updateList
-)
-indexWidget.threadListWidget.selectedIndexChanged.connect(
-    indexWidget.threadInfoStackedWidget.setCurrentIndex
-)
+_vars.workDirectoryInstance.dirScanResult.connect(findInvalidWidget.scanComplete)
+indexWidget.threadListWidget.threadSelected.connect(indexWidget.updateLocalThread)
 
 
 class LogWindowForwardHandler(logging.Handler):

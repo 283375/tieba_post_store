@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QAbstractListModel, QModelIndex, QItemSelectionModel, QFile
 
 from api.workDirectory import scanDirectory
+from api.thread import LocalThread
 from ui._vars import workDirectoryInstance
 
 
@@ -44,13 +45,8 @@ class FindInvalid(QWidget):
     def __init__(self, parent=None):
         super(FindInvalid, self).__init__(parent)
 
-        workDirectoryInstance.dirChanged.connect(self.dirChanged)
         self.dirLabel = QLabel()
-
-        self.dirChanged(workDirectoryInstance.dir)
-
-        self.scanPushButton = QPushButton("Scan")
-        self.scanPushButton.clicked.connect(self.scan)
+        workDirectoryInstance.dirChanged.connect(lambda dir: self.dirLabel.setText(dir))
 
         self._model = ListModel()
         self.listView = QListView()
@@ -86,7 +82,6 @@ class FindInvalid(QWidget):
 
         self.layout = QVBoxLayout(self)
         self.layout.addWidget(self.dirLabel)
-        self.layout.addWidget(self.scanPushButton)
         self.layout.addLayout(self.bottomLayout)
 
     def selectAction(self, action: str):
@@ -103,17 +98,9 @@ class FindInvalid(QWidget):
             elif action == "inverse":
                 setSelectState(index, QItemSelectionModel.Toggle)
 
-    def dirChanged(self, dir):
-        self.directory = dir
-        self.dirLabel.setText(dir)
-
-    def scan(self):
-        self.scanPushButton.setText("Please wait...")
-        self.scanPushButton.setEnabled(False)
-        invalidDirs = [dir for dir, t in scanDirectory(self.directory) if t is None]
+    def scanComplete(self, result: list[tuple[str, LocalThread | None]]):
+        invalidDirs = [dir for dir, t in result if t is None]
         self._model.setList(invalidDirs)
-        self.scanPushButton.setEnabled(True)
-        self.scanPushButton.setText("Scan")
         self.selectAction("all")
 
     def deleteConfirm(self):
