@@ -1,39 +1,20 @@
-import logging
+from PySide6.QtCore import Slot
+from PySide6.QtWidgets import QWidget
 
-from PySide6.QtWidgets import (
-    QWidget,
-    QPushButton,
-    QLabel,
-    QFileDialog,
-    QHBoxLayout,
-)
+from ui.base.WorkDirectory import Ui_WorkDirectory
 from ui._vars import workDirectoryInstance
 
-logger = logging.getLogger("root")
 
+class WorkDirectory(QWidget, Ui_WorkDirectory):
+    def __init__(self, parent=None):
+        super(WorkDirectory, self).__init__(parent)
+        self.setupUi(self)
 
-class ChangeWorkDirectory(QWidget):
-    def __init__(self):
-        super().__init__()
-
-        self.changeDirButton = QPushButton("更改工作目录")
-        self.changeDirButton.setFixedWidth(100)
-        self.changeDirButton.clicked.connect(self.openChangeDirDialog)
-
-        self.changeDirDialog = QFileDialog()
-        self.changeDirDialog.setFileMode(QFileDialog.Directory)
-        self.changeDirDialog.setOption(QFileDialog.ShowDirsOnly)
-
-        self.dirLabelWidget = QLabel("")
-        self.dirLabelWidget.setText(workDirectoryInstance.dir)
-        self.layout = QHBoxLayout(self)
-        self.layout.addWidget(self.changeDirButton)
-        self.layout.addWidget(self.dirLabelWidget)
-
-    def openChangeDirDialog(self):
+    @Slot()
+    def on_changeDirButton_clicked(self):
         tempDir = workDirectoryInstance.dir
-        self.changeDirDialog.setDirectory(tempDir)
-        if self.changeDirDialog.exec_():
-            newDir = self.changeDirDialog.selectedFiles()[0]
-            self.dirLabelWidget.setText(newDir)
+        self.changeDirFileDialog.setDirectory(tempDir)
+        if self.changeDirFileDialog.exec_():
+            newDir = self.changeDirFileDialog.selectedFiles()[0]
+            self.dirLabel.setText(newDir)
             workDirectoryInstance.setWorkDirectory(newDir)

@@ -13,7 +13,7 @@ class IndexWidget(QWidget):
         emptyThreadInfoWidget.layout = QVBoxLayout(emptyThreadInfoWidget)
         emptyThreadInfoWidget.layout.addWidget(QLabel("未选择任何存档"))
 
-        self.workDirectoryWidget = WorkDirectory.ChangeWorkDirectory()
+        self.workDirectoryWidget = WorkDirectory.WorkDirectory()
         self.threadListWidget = ThreadList.ThreadListWidget()
         self.threadInfoWidget = emptyThreadInfoWidget
         self.newThreadWidget = NewThread.NewThreadEntryWidget()
