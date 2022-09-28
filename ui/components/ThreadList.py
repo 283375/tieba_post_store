@@ -23,7 +23,7 @@ from PySide6.QtCore import (
 )
 from PySide6.QtGui import QPen, QFont, QFontMetrics, QColor, QBrush
 
-from .ThreadInfo import ThreadInfoWidget
+from .ThreadInfo import ThreadInfo
 from ui._vars import statusBar, workDirectoryInstance
 from api.thread import LocalThread, getLocalThreadInfo
 

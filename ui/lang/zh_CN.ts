@@ -54,7 +54,12 @@
 <context>
     <name>WorkDirectory</name>
     <message>
-        <location filename="../base/WorkDirectory.py" line="32"/>
+        <location filename="../base/WorkDirectory.py" line="46"/>
+        <source>title</source>
+        <translation>工作目录</translation>
+    </message>
+    <message>
+        <location filename="../base/WorkDirectory.py" line="49"/>
         <source>changeDirButton</source>
         <translation>更改</translation>
     </message>

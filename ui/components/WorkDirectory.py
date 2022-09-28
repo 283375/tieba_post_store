@@ -1,7 +1,8 @@
+from ui.base.WorkDirectory import Ui_WorkDirectory
+
 from PySide6.QtCore import Slot
 from PySide6.QtWidgets import QWidget
 
-from ui.base.WorkDirectory import Ui_WorkDirectory
 from ui._vars import workDirectoryInstance
 
 

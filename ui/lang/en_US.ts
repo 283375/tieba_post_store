@@ -52,7 +52,12 @@
 <context>
     <name>WorkDirectory</name>
     <message>
-        <location filename="../base/WorkDirectory.py" line="32"/>
+        <location filename="../base/WorkDirectory.py" line="46"/>
+        <source>title</source>
+        <translation>Work Directory</translation>
+    </message>
+    <message>
+        <location filename="../base/WorkDirectory.py" line="49"/>
         <source>changeDirButton</source>
         <translation>Change</translation>
     </message>

@@ -38,8 +38,9 @@ class IndexWidget(QWidget):
 
     @Slot()
     def updateLocalThread(self, lt: LocalThread):
-        newWidget = ThreadInfo.ThreadInfoWidget()
-        newWidget.setLocalThread(lt)
+        newWidget = ThreadInfo.ThreadInfo()
+        newWidget.retranslateUi()
+        newWidget.updateLabels(lt)
         self.indexLowerWrapper.removeWidget(self.threadInfoWidget)
         self.threadInfoWidget.close()
         oldWidget = self.threadInfoWidget
