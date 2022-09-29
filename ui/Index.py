@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QWidget, QLabel, QVBoxLayout, QHBoxLayout
 from PySide6.QtCore import Qt, Slot
 
 from api.thread import LocalThread
-from ui.components import WorkDirectory, NewThread, ThreadList, ThreadInfo
+from ui.implements import WorkDirectory, NewThread, ThreadList, ThreadInfo
 
 
 class IndexWidget(QWidget):
