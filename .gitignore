@@ -3,6 +3,9 @@ __debug*
 stored_posts/
 html_viewer/
 
+# Ignore compiled resources
+*.qm
+
 ## Auto generated
 # Byte-compiled / optimized / DLL files
 __pycache__/
