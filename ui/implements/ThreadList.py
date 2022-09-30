@@ -20,7 +20,8 @@ class ThreadList(QListView):
 
         self._model = Model()
         self.setModel(self._model)
-        self.setItemDelegate(Delegate())
+        self._delegate = Delegate()
+        self.setItemDelegate(self._delegate)
 
         self.activated.connect(self.__itemChanged)
 

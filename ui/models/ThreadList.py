@@ -4,7 +4,7 @@ from PySide6.QtCore import QAbstractListModel, QModelIndex, QByteArray
 from api.thread import LocalThread
 
 # Delegate imports
-from PySide6.QtCore import Qt, QRect, QSize
+from PySide6.QtCore import Qt, QPoint
 from PySide6.QtGui import QColor, QBrush, QPen, QFont, QFontMetrics
 from PySide6.QtWidgets import QStyle, QStyledItemDelegate
 
@@ -59,10 +59,12 @@ class Delegate(QStyledItemDelegate):
     StoreInfoQFont = QFont()
     StoreInfoQFont.setPixelSize(12)
 
-    def __getTextAndQFonts(self, index: QModelIndex):
+    def __getTextAndQFonts(self, index: QModelIndex) -> tuple[tuple[str, QFont]]:
         threadInfo = getLocalThreadInfo(index.data(Model.LocalThreadRole))
         title = threadInfo["title"]
-        author = f'{threadInfo["author"]["displayName"]} (ID {threadInfo["author"]["id"]})'
+        author = (
+            f'{threadInfo["author"]["displayName"]} (ID {threadInfo["author"]["id"]})'
+        )
         storeInfo = threadInfo["storeDir"]
 
         return (
@@ -72,53 +74,52 @@ class Delegate(QStyledItemDelegate):
         )
 
     def paint(self, painter, option, index) -> None:
+        # Background painting
         painter.save()
-
-        rect: QRect = option.rect
+        painter.setPen(Qt.NoPen)  # No border
         if option.state & QStyle.State_MouseOver:
-            painter.setPen(Qt.NoPen)
-            painter.setBrush(QBrush(QColor(*(self.defaultColor), 40)))
-            painter.drawRect(rect.x(), rect.y(), rect.width(), rect.height())
-            painter.setBrush(Qt.NoBrush)
-            painter.setPen(option.palette.text().color())
+            painter.fillRect(option.rect, QBrush(QColor(*(self.defaultColor), 40)))
         if option.state & QStyle.State_Selected:
-            painter.setPen(QPen(QColor(*(self.defaultColor))))
-            painter.setBrush(QBrush(QColor(*(self.defaultColor), 200)))
-            painter.drawRect(rect.x(), rect.y(), rect.width(), rect.height())
-            painter.setPen(Qt.white)
-            painter.setBrush(Qt.NoBrush)
+            painter.fillRect(option.rect, QBrush(QColor(*(self.defaultColor), 200)))
+        painter.restore()
 
-        def __drawText(top: int, font: QFont, text: str):
-            fm = QFontMetrics(font)
-            fontWidth = fm.horizontalAdvance(text, Qt.AlignLeft | Qt.AlignVCenter)
-            fontRect = QRect(
-                self.xPadding + rect.left(),
-                rect.y() + top,
-                self.xPadding + fontWidth + self.xPadding,
-                fm.height(),
-            )
+        # Text painting
+        painter.save()
+        if option.state & QStyle.State_Selected:
+            painter.setPen(QPen("#ffffff"))
+
+        def __drawText(topOffset: int, font: QFont, text: str):
             painter.setFont(font)
-            painter.drawText(fontRect, Qt.AlignLeft | Qt.AlignVCenter, text)
+            fm = QFontMetrics(font)
+            point = QPoint(
+                self.xPadding + option.rect.left(),
+                topOffset + option.rect.y() + fm.ascent(),
+            )
+            painter.drawText(point, text)
 
-        _top = self.yPadding
+        topOffset = self.yPadding
         for _ in self.__getTextAndQFonts(index):
             text, font = _
-            __drawText(_top, font, text)
-            _top += font.pixelSize() + self.yPadding
+            __drawText(topOffset, font, text)
+            topOffset += font.pixelSize() + self.yPadding
 
         painter.restore()
 
     def sizeHint(self, option, index):
-        maxWidth = 0
-        height = 0
-        for _ in self.__getTextAndQFonts(index):
-            text, font = _
+        textAndQFonts = self.__getTextAndQFonts(index)
+
+        widths = []
+        for _tuple in textAndQFonts:
+            text, font = _tuple
             fm = QFontMetrics(font)
-            height += font.pixelSize() + self.yPadding
-            width = fm.horizontalAdvance(text)
-            if maxWidth < width:
-                maxWidth = width
-        return QSize(
-            maxWidth + self.xPadding * 2,
-            height + self.yPadding * 2,
+            widths.append(fm.horizontalAdvance(text))
+
+        totalHeight = sum(
+            [_tuple[1].pixelSize() for _tuple in textAndQFonts]
+            + [self.yPadding * (2 + len(textAndQFonts))]
         )
+
+        size = super().sizeHint(option, index)
+        size.setWidth(max(widths) + self.xPadding * 2)
+        size.setHeight(totalHeight)
+        return size
