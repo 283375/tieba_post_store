@@ -2,6 +2,51 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="en_US">
 <context>
+    <name>NewThreadConfirmDialog</name>
+    <message>
+        <location filename="../implements/NewThread.py" line="74"/>
+        <source>titleField</source>
+        <translatorcomment>0: forumName, 1: threadTitle</translatorcomment>
+        <translation>[{0}] {1}</translation>
+    </message>
+    <message>
+        <location filename="../implements/NewThread.py" line="86"/>
+        <source>invalidThreadDialogTitle</source>
+        <translation>Invalid thread</translation>
+    </message>
+    <message>
+        <location filename="../implements/NewThread.py" line="89"/>
+        <source>invalidThreadDialogText</source>
+        <translatorcomment>0: threadId, 1: e</translatorcomment>
+        <translation>Thread {0} is invalid.&lt;br&gt;{1}</translation>
+    </message>
+    <message>
+        <location filename="../base/NewThread.py" line="87"/>
+        <source>idLabel</source>
+        <translation>ID</translation>
+    </message>
+    <message>
+        <location filename="../base/NewThread.py" line="90"/>
+        <source>titleLabel</source>
+        <translation>Title</translation>
+    </message>
+    <message>
+        <location filename="../base/NewThread.py" line="93"/>
+        <source>authorLabel</source>
+        <translation>LZ (OP)</translation>
+    </message>
+    <message>
+        <location filename="../base/NewThread.py" line="96"/>
+        <source>storeDirLabel</source>
+        <translation>Store Location</translation>
+    </message>
+    <message>
+        <location filename="../base/NewThread.py" line="99"/>
+        <source>confirmLabel</source>
+        <translation type="unfinished">Click &quot;Store&quot; to continue, or &quot;Cancel&quot; if there&apos;s any mismatching fields.</translation>
+    </message>
+</context>
+<context>
     <name>NewThreadInputDialog</name>
     <message>
         <location filename="../base/NewThread.py" line="42"/>
@@ -12,6 +57,17 @@
         <location filename="../base/NewThread.py" line="47"/>
         <source>lineEditPlaceholder</source>
         <translation>Input here...</translation>
+    </message>
+    <message>
+        <location filename="../implements/NewThread.py" line="47"/>
+        <source>invalidInputDialogTitle</source>
+        <translation>Parse failed</translation>
+    </message>
+    <message>
+        <location filename="../implements/NewThread.py" line="50"/>
+        <source>invalidInputDialogText</source>
+        <translatorcomment>0: userInput, 1: e</translatorcomment>
+        <translation>Cannot parse input &quot;{0}&quot;.&lt;br&gt;{1}</translation>
     </message>
 </context>
 <context>

@@ -5,7 +5,7 @@ from os.path import join, abspath, basename
 from urllib.parse import urlparse
 
 from PySide6.QtWidgets import QDialog, QPushButton, QMessageBox
-from PySide6.QtCore import Signal, Slot
+from PySide6.QtCore import QCoreApplication, Signal, Slot
 
 from api.thread import LightRemoteThread, LocalThread
 from ui._vars import workDirectoryObject
@@ -40,7 +40,15 @@ class NewThreadInputDialog(QDialog, Ui_NewThreadInputDialog):
             threadId = int(basename(urlparse(userInput).path), 10)
         except Exception as e:  # Invalid input :(
             logger.warning(e)
-            QMessageBox.critical(self, "输入无效", f'无法解析 "{userInput}"\n{str(e)}')
+            QMessageBox.critical(
+                self,
+                QCoreApplication.translate(
+                    "NewThreadInputDialog", "invalidInputDialogTitle", None
+                ),
+                QCoreApplication.translate(
+                    "NewThreadInputDialog", "invalidInputDialogText", None
+                ).format(userInput, e),
+            )
             self.open()
 
         if threadId is not None:
@@ -59,19 +67,31 @@ class NewThreadConfirmDialog(QDialog, Ui_NewThreadConfirmDialog):
             t = LightRemoteThread(threadId)
             info = t.getThreadInfo()
             storeDir = abspath(join(workDirectoryObject.dir, info["id"]))
-            self.idLabel.setText(info["id"])
-            self.titleLabel.setText(f'【{info["forum"]["name"]}吧】{info["title"]}')
-            self.authorLabel.setText(f'楼主 {info["author"]["displayName"]}')
-            self.storeDirLabel.setText(storeDir)
+            self.idField.setText(info["id"])
+            self.titleField.setText(
+                QCoreApplication.translate(
+                    "NewThreadConfirmDialog", "titleField", None
+                ).format(info["forum"]["name"], info["title"])
+            )
+            self.authorField.setText(info["author"]["displayName"])
+            self.storeDirField.setText(storeDir)
             self.storeThread.setLocalThread(LocalThread(storeDir, threadId))
             return True
         except LightRemoteThread.ThreadInvalidError as e:
             logger.error(f"Invalid thread {threadId}, {str(e)}")
-            QMessageBox.critical(self, "错误", f"贴子 {threadId} 无效。\n{str(e)}")
+            QMessageBox.critical(
+                self,
+                QCoreApplication.translate(
+                    "NewThreadConfirmDialog", "invalidThreadDialogTitle"
+                ),
+                QCoreApplication.translate(
+                    "NewThreadConfirmDialog", "invalidThreadDialogText"
+                ).format(threadId, e),
+            )
             return False
 
 
-class NewThreadEntryWidget(QPushButton):
+class NewThreadEntry(QPushButton):
     def __init__(self):
         super().__init__()
         self.setText("+ 新存档贴子")

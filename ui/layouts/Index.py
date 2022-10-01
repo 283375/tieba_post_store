@@ -16,7 +16,7 @@ class IndexWidget(QWidget):
         self.workDirectoryWidget = WorkDirectory.WorkDirectory()
         self.threadListWidget = ThreadList.ThreadList()
         self.threadInfoWidget = emptyThreadInfoWidget
-        self.newThreadWidget = NewThread.NewThreadEntryWidget()
+        self.newThreadWidget = NewThread.NewThreadEntry()
 
         self.threadListWidget.setMaximumWidth(300)
         self.newThreadWidget.setMaximumWidth(200)
