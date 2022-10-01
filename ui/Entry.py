@@ -1,13 +1,20 @@
 import logging
 
+from PySide6.QtCore import QTranslator
 from PySide6.QtWidgets import QMainWindow, QWidget, QTabWidget, QVBoxLayout
 
-from ui import _vars, Index, LogWindow, FindInvalid
+from ui import _vars
+from ui.layouts import Index, FindInvalid, LogWindow
 
 logger = logging.getLogger("root")
 logger.setLevel(logging.DEBUG)
 
 app = _vars.app
+
+translator = QTranslator(app)
+translator.load("./ui/lang/zh_CN.qm")
+app.installTranslator(translator)
+
 
 tab = QTabWidget()
 indexWidget = Index.IndexWidget()

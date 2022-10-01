@@ -11,11 +11,5 @@ from ui.Entry import *
 # fmt: on
 
 if __name__ == "__main__":
-    translator = QTranslator(app)
-    translator.load("N:/develop/tieba_post_store/ui/lang/zh_CN.qm")
-    print( translator.filePath())
-    app.installTranslator(translator)
-
-    indexWidget.workDirectoryWidget.retranslateUi()
     mainWindow.show()
     sys.exit(app.exec())
