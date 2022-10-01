@@ -12,9 +12,8 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, QAbstractListModel, QModelIndex, QItemSelectionModel, QFile
 
-from api.workDirectory import scanDirectory
 from api.thread import LocalThread
-from ui._vars import workDirectoryInstance
+from ui._vars import workDirectoryObject
 
 
 class ListModel(QAbstractListModel):
@@ -46,7 +45,7 @@ class FindInvalid(QWidget):
         super(FindInvalid, self).__init__(parent)
 
         self.dirLabel = QLabel()
-        workDirectoryInstance.dirChanged.connect(lambda dir: self.dirLabel.setText(dir))
+        workDirectoryObject.dirChanged.connect(lambda dir: self.dirLabel.setText(dir))
 
         self._model = ListModel()
         self.listView = QListView()

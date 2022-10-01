@@ -7,7 +7,7 @@ from PySide6.QtCore import Qt, QThread, Signal, Slot
 
 from api.thread import LocalThread
 from utils.progress import Progress
-from ui._vars import app, signals
+from ui._vars import app, workDirectoryObject
 
 logger = logging.getLogger("root")
 
@@ -137,7 +137,7 @@ class StoreThread(QWidget, Ui_StoreThread):
         self.__resetProgressBar(self.progressBar2)
         self.__resetProgressBar(self.progressBar3)
         self.storeComplete.emit()
-        signals.refreshWorkDirectory.emit()
+        workDirectoryObject.scan()
 
         self.lzOnlyCheckBox.setEnabled(True)
         self.assetsCheckBox.setEnabled(True)

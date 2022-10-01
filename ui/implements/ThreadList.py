@@ -4,7 +4,7 @@ from PySide6.QtWidgets import QListView
 
 from PySide6.QtCore import QModelIndex, Signal, Slot
 
-from ui._vars import statusBar, workDirectoryInstance
+from ui._vars import statusBar, workDirectoryObject
 from api.thread import LocalThread
 
 
@@ -28,7 +28,7 @@ class ThreadList(QListView):
     @Slot(list)
     def dirScanComplete(self, validResult: list[tuple[str, LocalThread]]):
         statusBar.showMessage(
-            f"在 {workDirectoryInstance.dir} 中找到了 {len(validResult)} 个有效存档目录", 10000
+            f"在 {workDirectoryObject.dir} 中找到了 {len(validResult)} 个有效存档目录", 10000
         )
         self._model.updateList([t for dir, t in validResult])
 

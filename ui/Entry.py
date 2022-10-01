@@ -21,10 +21,10 @@ indexWidget = Index.IndexWidget()
 logWindowWidget = LogWindow.LogWindowWidget()
 findInvalidWidget = FindInvalid.FindInvalid()
 
-_vars.workDirectoryInstance.dirScanValidResult.connect(
+_vars.workDirectoryObject.dirScanValidResult.connect(
     indexWidget.threadListWidget.dirScanComplete
 )
-_vars.workDirectoryInstance.dirScanResult.connect(findInvalidWidget.scanComplete)
+_vars.workDirectoryObject.dirScanResult.connect(findInvalidWidget.scanComplete)
 indexWidget.threadListWidget.threadSelected.connect(indexWidget.updateLocalThread)
 
 
