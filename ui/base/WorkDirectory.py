@@ -23,7 +23,7 @@ class Ui_WorkDirectory(object):
         self.innerLayout = QHBoxLayout(self.groupBox)
 
         self.changeDirButton = QPushButton(widget)
-        self.changeDirButton.setObjectName("changeDirButton")
+        self.changeDirButton.setObjectName("WD_changeDirButton")
 
         self.innerLayout.addWidget(self.changeDirButton)
 
@@ -45,9 +45,7 @@ class Ui_WorkDirectory(object):
         QMetaObject.connectSlotsByName(widget)
 
     def retranslateUi(self, widget: QWidget = None):
-        self.groupBox.setTitle(
-            QCoreApplication.translate("WorkDirectory", "title", None)
-        )
+        self.groupBox.setTitle(QCoreApplication.translate("WorkDirectory", "title", None))
         self.changeDirButton.setText(
             QCoreApplication.translate("WorkDirectory", "changeDirButton", None)
         )

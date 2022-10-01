@@ -1,4 +1,4 @@
-from PySide6.QtCore import Qt, QCoreApplication
+from PySide6.QtCore import Qt, QMetaObject, QCoreApplication
 from PySide6.QtWidgets import QWidget, QLabel, QFormLayout
 
 
@@ -42,6 +42,10 @@ class Ui_ThreadInfo(object):
         self.updateTimeLabel = QLabel()
         self.updateTimeField = QLabel()
         self.layout.addRow(self.updateTimeLabel, self.updateTimeField)
+
+        self.retranslateUi(widget)
+
+        QMetaObject.connectSlotsByName(widget)
 
     def retranslateUi(self, widget: QWidget = None):
         self.versionLabel.setText(

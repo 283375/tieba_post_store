@@ -1,65 +1,33 @@
+from ui.base.NewThread import Ui_NewThreadInputDialog, Ui_NewThreadConfirmDialog
+
+import logging
 from os.path import join, abspath, basename
 from urllib.parse import urlparse
 
-from PySide6.QtWidgets import (
-    QDialog,
-    QDialogButtonBox,
-    QLineEdit,
-    QPushButton,
-    QMessageBox,
-    QLabel,
-    QVBoxLayout,
-    QGridLayout,
-)
+from PySide6.QtWidgets import QDialog, QPushButton, QMessageBox
 from PySide6.QtCore import Qt, Slot
 
 from api.thread import LightRemoteThread, LocalThread
 from ui._vars import workDirectoryInstance, statusBar
 from .StoreThread import StoreThread
 
+logger = logging.getLogger("root.ui.NewThread")
 
-class NewThreadParseInputDialog(QDialog):
+
+class NewThreadInputDialog(QDialog, Ui_NewThreadInputDialog):
     def __init__(self, parent=None):
-        super(NewThreadParseInputDialog, self).__init__(parent)
+        super(NewThreadInputDialog, self).__init__(parent)
         self.setWindowTitle("New Thread")
-        self.layout = QVBoxLayout(self)
-        self.tipLabel = QLabel(
-            "请输入贴子的 ID 或网页链接。<br />如 7741777833 或 https://tieba.baidu.com/p/7741777833"
-        )
-        self.edit = QLineEdit()
-        self.edit.setPlaceholderText("在此处输入……")
-        self.edit.setClearButtonEnabled(True)
-        self.edit.setMinimumWidth(300)
-        self.buttonBox = QDialogButtonBox(self)
-        self.buttonBox.setOrientation(Qt.Horizontal)
-        self.buttonBox.setStandardButtons(QDialogButtonBox.Cancel | QDialogButtonBox.Ok)
+        self.setupUi(self)
+
         self.buttonBox.accepted.connect(self.accept)
         self.buttonBox.rejected.connect(self.reject)
-        self.layout.addWidget(self.tipLabel)
-        self.layout.addWidget(self.edit)
-        self.layout.addWidget(self.buttonBox)
 
 
-class NewThreadConfirmDialog(QDialog):
+class NewThreadConfirmDialog(QDialog, Ui_NewThreadConfirmDialog):
     def __init__(self, parent=None):
         super(NewThreadConfirmDialog, self).__init__(parent)
-        self.storeThread = StoreThread()
-
-        self.layout = QGridLayout(self)
-        self.idLabel = QLabel()
-        self.titleLabel = QLabel()
-        self.authorLabel = QLabel()
-        self.storeDirLabel = QLabel()
-        self.layout.addWidget(QLabel("ID"), 0, 0)
-        self.layout.addWidget(self.idLabel, 0, 1)
-        self.layout.addWidget(QLabel("标题"), 1, 0)
-        self.layout.addWidget(self.titleLabel, 1, 1)
-        self.layout.addWidget(QLabel("楼主"), 2, 0)
-        self.layout.addWidget(self.authorLabel, 2, 1)
-        self.layout.addWidget(QLabel("将存档于"), 4, 0)
-        self.layout.addWidget(self.storeDirLabel, 4, 1)
-        self.layout.addWidget(QLabel("若确定，请在确认存档选项后单击“存档”按钮"), 5, 0, 1, 2)
-        self.layout.addWidget(self.storeThread, 6, 0, 1, 2)
+        self.setupUi(self)
 
     def updateId(self, threadId: int):
         self.threadId = threadId
@@ -84,31 +52,28 @@ class NewThreadEntryWidget(QPushButton):
     def __init__(self):
         super().__init__()
         self.setText("+ 新存档贴子")
-        self.parseInput = NewThreadParseInputDialog(self)
-        self.clicked.connect(self.openParseInputDialog)
-        self.parseInput.finished.connect(self.parseDialogInput)
+        self.inputDialog = NewThreadInputDialog(self)
+        self.clicked.connect(lambda: self.inputDialog.open())
+        self.inputDialog.accepted.connect(self.parseInput)
         self.confirmDialog = NewThreadConfirmDialog(self)
 
     @Slot()
-    def openParseInputDialog(self):
-        self.parseInput.open()
+    def parseInput(self):
+        _input = self.inputDialog.lineEdit.text()
 
-    @Slot()
-    def parseDialogInput(self, signal: int):
-        if signal != QDialog.Accepted:
-            return
-
-        _input = self.parseInput.edit.text()
-        try:
-            _id = int(_input, 10)  # _input is id?
+        _id = None
+        try:  # _input is id?
+            _id = int(_input, 10)
         except ValueError:
-            try:
-                _id = int(basename(urlparse(_input).path))  # _input is url?
-            except Exception as e:
-                _id = None
-                QMessageBox.critical(self, "输入无效", f'无法解析 "{_input}"\n详细信息: {str(e)}')
-                self.parseInput.open()
-                raise e
+            ...  # No :(
 
-        self.confirmDialog.updateId(_id)
-        self.confirmDialog.show()
+        try:  # _input is url?
+            _id = int(basename(urlparse(_input).path), 10)
+        except Exception as e:
+            logger.warning(e)
+            QMessageBox.critical(self, "输入无效", f'无法解析 "{_input}"\n详细信息: {str(e)}')
+            self.inputDialog.open()
+
+        if _id is not None:
+            self.confirmDialog.updateId(_id)
+            self.confirmDialog.show()

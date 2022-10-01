@@ -12,7 +12,7 @@ class WorkDirectory(QWidget, Ui_WorkDirectory):
         self.setupUi(self)
 
     @Slot()
-    def on_changeDirButton_clicked(self):
+    def on_WD_changeDirButton_clicked(self):
         tempDir = workDirectoryInstance.dir
         self.changeDirFileDialog.setDirectory(tempDir)
         if self.changeDirFileDialog.exec_():
