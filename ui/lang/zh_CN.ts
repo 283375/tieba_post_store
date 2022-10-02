@@ -2,6 +2,76 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="zh_CN">
 <context>
+    <name>Layout_FindInvalid</name>
+    <message>
+        <location filename="../layouts/FindInvalid.py" line="71"/>
+        <source>recycleCheckBox</source>
+        <translation>移动至回收站</translation>
+    </message>
+    <message>
+        <location filename="../layouts/FindInvalid.py" line="74"/>
+        <source>deleteButton</source>
+        <translation>删除</translation>
+    </message>
+    <message>
+        <location filename="../layouts/FindInvalid.py" line="77"/>
+        <source>quickActionsTitle</source>
+        <translation>快速操作</translation>
+    </message>
+    <message>
+        <location filename="../layouts/FindInvalid.py" line="80"/>
+        <source>quickActions_SelectAll</source>
+        <translation>全选</translation>
+    </message>
+    <message>
+        <location filename="../layouts/FindInvalid.py" line="83"/>
+        <source>quickActions_DeselectAll</source>
+        <translation>全不选</translation>
+    </message>
+    <message>
+        <location filename="../layouts/FindInvalid.py" line="88"/>
+        <source>quickActions_InvertSelection</source>
+        <translation>反选</translation>
+    </message>
+    <message>
+        <location filename="../layouts/FindInvalid.py" line="134"/>
+        <source>deleteConfirmDialogMessage</source>
+        <comment>recycle</comment>
+        <translation>以下文件（夹）将被移至回收站：&lt;br&gt;&lt;br&gt;{0}&lt;br&gt;&lt;br&gt;确定吗？</translation>
+    </message>
+    <message>
+        <location filename="../layouts/FindInvalid.py" line="139"/>
+        <source>deleteConfirmDialogMessage</source>
+        <comment>directDelete</comment>
+        <translation>以下文件（夹）将被&lt;b&gt;直接删除&lt;/b&gt;：&lt;br&gt;&lt;br&gt;{0}&lt;br&gt;&lt;br&gt;确定吗？</translation>
+    </message>
+    <message>
+        <location filename="../layouts/FindInvalid.py" line="142"/>
+        <source>deleteConfirmDialogTitle</source>
+        <translation>确认删除</translation>
+    </message>
+    <message>
+        <location filename="../layouts/FindInvalid.py" line="163"/>
+        <location filename="../layouts/FindInvalid.py" line="179"/>
+        <source>deleteFailedDialogTitle</source>
+        <translation>删除失败</translation>
+    </message>
+    <message>
+        <location filename="../layouts/FindInvalid.py" line="170"/>
+        <source>deleteFailedDialogMessage</source>
+        <comment>deleteFailed</comment>
+        <translatorcomment>0: fileAbsPath</translatorcomment>
+        <translation>无法删除 {0}，将跳过该文件。</translation>
+    </message>
+    <message>
+        <location filename="../layouts/FindInvalid.py" line="182"/>
+        <source>deleteFailedDialogMessage</source>
+        <comment>fileNotFound</comment>
+        <translatorcomment>0: fileAbsPath</translatorcomment>
+        <translation>无法删除不存在的文件 {0}。</translation>
+    </message>
+</context>
+<context>
     <name>NewThreadConfirmDialog</name>
     <message>
         <location filename="../implements/NewThread.py" line="74"/>

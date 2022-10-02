@@ -1,7 +1,7 @@
 from os.path import basename, abspath
 from PySide6.QtWidgets import (
     QWidget,
-    QLabel,
+    QFrame,
     QPushButton,
     QListView,
     QGroupBox,
@@ -10,55 +10,101 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QHBoxLayout,
 )
-from PySide6.QtCore import Qt, QStringListModel, QModelIndex, QItemSelectionModel, QFile
+from PySide6.QtCore import (
+    QStringListModel,
+    QModelIndex,
+    QItemSelectionModel,
+    QFile,
+    QCoreApplication,
+    QMetaObject,
+)
 
 from api.thread import LocalThread
 from ui.implements.WorkDirectory import WorkDirectory
 
 
-class FindInvalid(QWidget):
-    def __init__(self, parent=None):
-        super(FindInvalid, self).__init__(parent)
+class Ui_Layout_FindInvalid(object):
+    def setupUi(self, widget: QWidget):
+        self.layout = QVBoxLayout(widget)
 
         self.workDirectoryWidget = WorkDirectory()
+        self.layout.addWidget(self.workDirectoryWidget)
 
-        self._model = QStringListModel()
-        self.listView = QListView()
-        self.listView.setModel(self._model)
+        self.deleteFrame = QFrame(widget)
+        self.deleteFrameLayout = QHBoxLayout(self.deleteFrame)
+
+        self.deleteFrame_RecycleCheckBox = QCheckBox(widget)
+        self.deleteFrameLayout.addWidget(self.deleteFrame_RecycleCheckBox)
+
+        self.deleteFrame_delete = QPushButton(widget)
+        self.deleteFrameLayout.addWidget(self.deleteFrame_delete)
+
+        self.layout.addWidget(self.deleteFrame)
+
+        self.quickActionsGroupBox = QGroupBox(widget)
+        self.quickActionsLayout = QHBoxLayout(self.quickActionsGroupBox)
+
+        self.quickActions_SelectAll = QPushButton(self.quickActionsGroupBox)
+        self.quickActionsLayout.addWidget(self.quickActions_SelectAll)
+
+        self.quickActions_DeselectAll = QPushButton(self.quickActionsGroupBox)
+        self.quickActionsLayout.addWidget(self.quickActions_DeselectAll)
+
+        self.quickActions_InvertSelection = QPushButton(self.quickActionsGroupBox)
+        self.quickActionsLayout.addWidget(self.quickActions_InvertSelection)
+
+        self.layout.addWidget(self.quickActionsGroupBox)
+
+        self.listView = QListView(widget)
         self.listView.setSelectionMode(QListView.SelectionMode.MultiSelection)
 
-        self.functionWrapper = QVBoxLayout()
+        self.layout.addWidget(self.listView)
 
-        self.selectionButtons = QGroupBox("快速操作")
-        self.selectionButtons.layout = QHBoxLayout(self.selectionButtons)
-        self.selectionButtonAll = QPushButton("全选")
-        self.selectionButtonAll.clicked.connect(lambda: self.selectAction("all"))
-        self.selectionButtonNone = QPushButton("全不选")
-        self.selectionButtonNone.clicked.connect(lambda: self.selectAction("none"))
-        self.selectionButtonInverse = QPushButton("反选")
-        self.selectionButtonInverse.clicked.connect(lambda: self.selectAction("inverse"))
-        self.selectionButtons.layout.addWidget(self.selectionButtonAll)
-        self.selectionButtons.layout.addWidget(self.selectionButtonNone)
-        self.selectionButtons.layout.addWidget(self.selectionButtonInverse)
+        self.retranslateUi(widget)
 
-        self.triggerDeleteButton = QPushButton("Delete")
-        self.triggerDeleteButton.clicked.connect(self.deleteConfirm)
+        QMetaObject.connectSlotsByName(widget)
 
-        self.moveToTrashCheckBox = QCheckBox("Move to trash")
+    def retranslateUi(self, widget: QWidget = None):
+        self.deleteFrame_RecycleCheckBox.setText(
+            QCoreApplication.translate("Layout_FindInvalid", "recycleCheckBox")
+        )
+        self.deleteFrame_delete.setText(
+            QCoreApplication.translate("Layout_FindInvalid", "deleteButton")
+        )
+        self.quickActionsGroupBox.setTitle(
+            QCoreApplication.translate("Layout_FindInvalid", "quickActionsTitle")
+        )
+        self.quickActions_SelectAll.setText(
+            QCoreApplication.translate("Layout_FindInvalid", "quickActions_SelectAll")
+        )
+        self.quickActions_DeselectAll.setText(
+            QCoreApplication.translate("Layout_FindInvalid", "quickActions_DeselectAll")
+        )
+        self.quickActions_InvertSelection.setText(
+            QCoreApplication.translate(
+                "Layout_FindInvalid", "quickActions_InvertSelection"
+            )
+        )
 
-        self.functionWrapper.addWidget(self.selectionButtons)
-        self.functionWrapper.addWidget(self.moveToTrashCheckBox)
-        self.functionWrapper.addWidget(self.triggerDeleteButton)
 
-        self.bottomLayout = QHBoxLayout()
-        self.bottomLayout.addWidget(self.listView)
-        self.bottomLayout.addLayout(self.functionWrapper)
+class Layout_FindInvalid(QWidget, Ui_Layout_FindInvalid):
+    def __init__(self, parent=None):
+        super(Layout_FindInvalid, self).__init__(parent)
 
-        self.layout = QVBoxLayout(self)
-        self.layout.addWidget(self.workDirectoryWidget)
-        self.layout.addLayout(self.bottomLayout)
+        self.setupUi(self)
 
-    def selectAction(self, action: str):
+        self._model = QStringListModel()
+        self.listView.setModel(self._model)
+
+        self.quickActions_SelectAll.clicked.connect(lambda: self.quickSelect("all"))
+        self.quickActions_DeselectAll.clicked.connect(lambda: self.quickSelect("none"))
+        self.quickActions_InvertSelection.clicked.connect(
+            lambda: self.quickSelect("invert")
+        )
+
+        self.deleteFrame_delete.clicked.connect(self.deleteConfirm)
+
+    def quickSelect(self, action: str):
         setSelectState = lambda index, const: self.listView.selectionModel().select(
             index, const
         )
@@ -69,46 +115,69 @@ class FindInvalid(QWidget):
                 setSelectState(index, QItemSelectionModel.Select)
             elif action == "none":
                 setSelectState(index, QItemSelectionModel.Deselect)
-            elif action == "inverse":
+            elif action == "invert":
                 setSelectState(index, QItemSelectionModel.Toggle)
 
     def scanComplete(self, result: list[tuple[str, LocalThread | None]]):
         invalidDirs = [dir for dir, t in result if t is None]
         self._model.setStringList(invalidDirs)
-        self.selectAction("all")
+        self.quickSelect("all")
 
     def deleteConfirm(self):
-        dirs = [
-            self._model.data(index, Qt.UserRole)
-            for index in self.listView.selectedIndexes()
-        ]
-        message = (
-            "These files or directories will be "
-            + ("moved to trash" if self.moveToTrashCheckBox.isChecked() else "deleted")
-            + "<br><br>"
-            + "<br>".join(basename(dir) for dir in dirs)
+        files = [self._model.data(index) for index in self.listView.selectedIndexes()]
+
+        if self.deleteFrame_RecycleCheckBox.isChecked():
+            message = QCoreApplication.translate(
+                "Layout_FindInvalid", "deleteConfirmDialogMessage", "recycle"
+            )
+        else:
+            message = QCoreApplication.translate(
+                "Layout_FindInvalid", "deleteConfirmDialogMessage", "directDelete"
+            )
+
+        message = message.format("<br>".join(basename(file) for file in files))
+        result = QMessageBox.question(
+            self,
+            QCoreApplication.translate("Layout_FindInvalid", "deleteConfirmDialogTitle"),
+            message,
         )
-        result = QMessageBox.question(self, "Confirm", message)
         if result == QMessageBox.Yes:
-            self.delete(dirs)
+            self.delete(files)
 
-    def delete(self, dirs: list[str]):
-        for _dir in dirs:
-            absDir = abspath(_dir)
-            file = QFile(absDir)
+    def delete(self, files: list[str]):
+        for file in files:
+            fileAbsPath = abspath(file)
+            file = QFile(fileAbsPath)
             if file.exists():
-                if self.moveToTrashCheckBox.isChecked():
-                    result = file.moveToTrash()
+                if self.deleteFrame_RecycleCheckBox.isChecked():
+                    deleteResult = file.moveToTrash()
                 else:
-                    result = file.remove()
+                    deleteResult = file.remove()
 
-                if result == False:
+                if deleteResult == False:
                     QMessageBox.warning(
-                        self, "Warning", f"Unable to delete {absDir}, skipping."
+                        self,
+                        QCoreApplication.translate(
+                            "Layout_FindInvalid", "deleteFailedDialogTitle"
+                        ),
+                        # fmt: off
+                        QCoreApplication.translate(
+                            "Layout_FindInvalid",
+                            "deleteFailedDialogMessage",
+                            "deleteFailed" 
+                            # no trailing comma because lupdate will treat this line as a "numerus" translation key.
+                        ).format(fileAbsPath)
+                        # fmt: on
                     )
                     continue
             else:
                 QMessageBox.warning(
-                    self, "Warning", f"{absDir} does not exist, skipping."
+                    self,
+                    QCoreApplication.translate(
+                        "Layout_FindInvalid", "deleteFailedDialogTitle"
+                    ),
+                    QCoreApplication.translate(
+                        "Layout_FindInvalid", "deleteFailedDialogMessage", "fileNotFound"
+                    ).format(fileAbsPath),
                 )
                 continue

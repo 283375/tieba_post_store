@@ -2,6 +2,76 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="en_US">
 <context>
+    <name>Layout_FindInvalid</name>
+    <message>
+        <location filename="../layouts/FindInvalid.py" line="71"/>
+        <source>recycleCheckBox</source>
+        <translation>Move to recycle bin</translation>
+    </message>
+    <message>
+        <location filename="../layouts/FindInvalid.py" line="74"/>
+        <source>deleteButton</source>
+        <translation>Delete</translation>
+    </message>
+    <message>
+        <location filename="../layouts/FindInvalid.py" line="77"/>
+        <source>quickActionsTitle</source>
+        <translation>Quick Actions</translation>
+    </message>
+    <message>
+        <location filename="../layouts/FindInvalid.py" line="80"/>
+        <source>quickActions_SelectAll</source>
+        <translation>Select All</translation>
+    </message>
+    <message>
+        <location filename="../layouts/FindInvalid.py" line="83"/>
+        <source>quickActions_DeselectAll</source>
+        <translation>Deselect All</translation>
+    </message>
+    <message>
+        <location filename="../layouts/FindInvalid.py" line="88"/>
+        <source>quickActions_InvertSelection</source>
+        <translation>Invert Selection</translation>
+    </message>
+    <message>
+        <location filename="../layouts/FindInvalid.py" line="134"/>
+        <source>deleteConfirmDialogMessage</source>
+        <comment>recycle</comment>
+        <translation>These files (or directories) will be recycled:&lt;br&gt;&lt;br&gt;{0}&lt;br&gt;&lt;br&gt;Are you sure?</translation>
+    </message>
+    <message>
+        <location filename="../layouts/FindInvalid.py" line="139"/>
+        <source>deleteConfirmDialogMessage</source>
+        <comment>directDelete</comment>
+        <translation>These files (or directories) will be &lt;b&gt;deleted directly&lt;/b&gt;:&lt;br&gt;&lt;br&gt;{0}&lt;br&gt;&lt;br&gt;Are you sure?</translation>
+    </message>
+    <message>
+        <location filename="../layouts/FindInvalid.py" line="142"/>
+        <source>deleteConfirmDialogTitle</source>
+        <translation>Confirm deletion</translation>
+    </message>
+    <message>
+        <location filename="../layouts/FindInvalid.py" line="163"/>
+        <location filename="../layouts/FindInvalid.py" line="179"/>
+        <source>deleteFailedDialogTitle</source>
+        <translation>Failed to delete</translation>
+    </message>
+    <message>
+        <location filename="../layouts/FindInvalid.py" line="170"/>
+        <source>deleteFailedDialogMessage</source>
+        <comment>deleteFailed</comment>
+        <translatorcomment>0: fileAbsPath</translatorcomment>
+        <translation>Cannot delete {0}, skipping.</translation>
+    </message>
+    <message>
+        <location filename="../layouts/FindInvalid.py" line="182"/>
+        <source>deleteFailedDialogMessage</source>
+        <comment>fileNotFound</comment>
+        <translatorcomment>0: fileAbsPath</translatorcomment>
+        <translation>Cannot delete non-existent file {0}.</translation>
+    </message>
+</context>
+<context>
     <name>NewThreadConfirmDialog</name>
     <message>
         <location filename="../implements/NewThread.py" line="74"/>
@@ -43,7 +113,7 @@
     <message>
         <location filename="../base/NewThread.py" line="99"/>
         <source>confirmLabel</source>
-        <translation type="unfinished">Click &quot;Store&quot; to continue, or &quot;Cancel&quot; if there&apos;s any mismatching fields.</translation>
+        <translation>Click &quot;Store&quot; to continue, or &quot;Cancel&quot; if there&apos;s any mismatching fields.</translation>
     </message>
 </context>
 <context>
