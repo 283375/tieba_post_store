@@ -89,17 +89,3 @@ class NewThreadConfirmDialog(QDialog, Ui_NewThreadConfirmDialog):
                 ).format(threadId, e),
             )
             return False
-
-
-class NewThreadEntry(QPushButton):
-    def __init__(self):
-        super().__init__()
-        self.setText("+ 新存档贴子")
-        self.inputDialog = NewThreadInputDialog()
-        self.confirmDialog = NewThreadConfirmDialog()
-        self.clicked.connect(lambda: self.inputDialog.open())
-        self.inputDialog.storeRequest.connect(self.gotStoreRequest)
-
-    def gotStoreRequest(self, threadId: str):
-        if self.confirmDialog.setId(threadId):
-            self.confirmDialog.show()

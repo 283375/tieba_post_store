@@ -29,24 +29,24 @@
      inkscape:current-layer="svg5"
      showguides="true">
     <sodipodi:guide
-       position="3.9111302,31.847775"
-       orientation="99.999999,0"
-       id="guide1371"
+       position="19,109"
+       orientation="90,0"
+       id="guide2432"
        inkscape:locked="false" />
     <sodipodi:guide
-       position="3.9111302,3.9111305"
-       orientation="0,99.999999"
-       id="guide1373"
+       position="19,19"
+       orientation="0,90"
+       id="guide2434"
        inkscape:locked="false" />
     <sodipodi:guide
-       position="31.847775,3.9111305"
-       orientation="-99.999999,0"
-       id="guide1375"
+       position="109,19"
+       orientation="-90,0"
+       id="guide2436"
        inkscape:locked="false" />
     <sodipodi:guide
-       position="31.847775,31.847775"
-       orientation="0,-99.999999"
-       id="guide1377"
+       position="109,109"
+       orientation="0,-90"
+       id="guide2438"
        inkscape:locked="false" />
   </sodipodi:namedview>
   <defs
@@ -71,8 +71,8 @@
     </rdf:RDF>
   </metadata>
   <path
-     id="rect3087"
+     id="rect2442"
      style="stroke-width:20;stroke-miterlimit:2"
-     d="M 54,14 H 74 V 114 H 54 Z M 14,54 H 114 V 74 H 14 Z"
+     d="m 54,19 h 20 v 90 H 54 Z M 19,54 h 90 V 74 H 19 Z"
      inkscape:label="add" />
 </svg>

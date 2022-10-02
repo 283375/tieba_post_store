@@ -18,15 +18,15 @@ app.installTranslator(translator)
 
 
 tab = QTabWidget()
-indexWidget = Index.IndexWidget()
+indexWidget = Index.Layout_Index()
 logWindowWidget = LogWindow.Layout_LogWindow()
 findInvalidWidget = FindInvalid.Layout_FindInvalid()
 
 sharedVars.workDirectoryObject.dirScanValidResult.connect(
-    indexWidget.threadListWidget.dirScanComplete
+    indexWidget.threadList.dirScanComplete
 )
 sharedVars.workDirectoryObject.dirScanResult.connect(findInvalidWidget.scanComplete)
-indexWidget.threadListWidget.threadSelected.connect(indexWidget.updateLocalThread)
+indexWidget.threadList.threadSelected.connect(indexWidget.updateLocalThread)
 
 # All widgets are now initialized and connected to the signals,
 # so we could now run a scan, emit the result to the widgets.
