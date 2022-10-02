@@ -4,67 +4,67 @@
 <context>
     <name>Layout_FindInvalid</name>
     <message>
-        <location filename="../../layouts/FindInvalid.py" line="70"/>
+        <location filename="../../layouts/FindInvalid.py" line="71"/>
         <source>recycleCheckBox</source>
         <translation>移动至回收站</translation>
     </message>
     <message>
-        <location filename="../../layouts/FindInvalid.py" line="73"/>
+        <location filename="../../layouts/FindInvalid.py" line="74"/>
         <source>deleteButton</source>
         <translation>删除</translation>
     </message>
     <message>
-        <location filename="../../layouts/FindInvalid.py" line="76"/>
+        <location filename="../../layouts/FindInvalid.py" line="77"/>
         <source>quickActionsTitle</source>
         <translation>快速操作</translation>
     </message>
     <message>
-        <location filename="../../layouts/FindInvalid.py" line="79"/>
+        <location filename="../../layouts/FindInvalid.py" line="80"/>
         <source>quickActions_SelectAll</source>
         <translation>全选</translation>
     </message>
     <message>
-        <location filename="../../layouts/FindInvalid.py" line="82"/>
+        <location filename="../../layouts/FindInvalid.py" line="83"/>
         <source>quickActions_DeselectAll</source>
         <translation>全不选</translation>
     </message>
     <message>
-        <location filename="../../layouts/FindInvalid.py" line="87"/>
+        <location filename="../../layouts/FindInvalid.py" line="88"/>
         <source>quickActions_InvertSelection</source>
         <translation>反选</translation>
     </message>
     <message>
-        <location filename="../../layouts/FindInvalid.py" line="133"/>
+        <location filename="../../layouts/FindInvalid.py" line="136"/>
         <source>deleteConfirmDialogMessage</source>
         <comment>recycle</comment>
         <translation>以下文件（夹）将被移至回收站：&lt;br&gt;&lt;br&gt;{0}&lt;br&gt;&lt;br&gt;确定吗？</translation>
     </message>
     <message>
-        <location filename="../../layouts/FindInvalid.py" line="138"/>
+        <location filename="../../layouts/FindInvalid.py" line="141"/>
         <source>deleteConfirmDialogMessage</source>
         <comment>directDelete</comment>
         <translation>以下文件（夹）将被&lt;b&gt;直接删除&lt;/b&gt;：&lt;br&gt;&lt;br&gt;{0}&lt;br&gt;&lt;br&gt;确定吗？</translation>
     </message>
     <message>
-        <location filename="../../layouts/FindInvalid.py" line="141"/>
+        <location filename="../../layouts/FindInvalid.py" line="144"/>
         <source>deleteConfirmDialogTitle</source>
         <translation>确认删除</translation>
     </message>
     <message>
-        <location filename="../../layouts/FindInvalid.py" line="162"/>
-        <location filename="../../layouts/FindInvalid.py" line="178"/>
+        <location filename="../../layouts/FindInvalid.py" line="165"/>
+        <location filename="../../layouts/FindInvalid.py" line="181"/>
         <source>deleteFailedDialogTitle</source>
         <translation>删除失败</translation>
     </message>
     <message>
-        <location filename="../../layouts/FindInvalid.py" line="169"/>
+        <location filename="../../layouts/FindInvalid.py" line="172"/>
         <source>deleteFailedDialogMessage</source>
         <comment>deleteFailed</comment>
         <translatorcomment>0: fileAbsPath</translatorcomment>
         <translation>无法删除 {0}，将跳过该文件。</translation>
     </message>
     <message>
-        <location filename="../../layouts/FindInvalid.py" line="181"/>
+        <location filename="../../layouts/FindInvalid.py" line="184"/>
         <source>deleteFailedDialogMessage</source>
         <comment>fileNotFound</comment>
         <translatorcomment>0: fileAbsPath</translatorcomment>
@@ -74,12 +74,12 @@
 <context>
     <name>Layout_Index</name>
     <message>
-        <location filename="../../layouts/Index.py" line="32"/>
+        <location filename="../../layouts/Index.py" line="31"/>
         <source>emptyPlaceholderLabel</source>
         <translation>未选择存档</translation>
     </message>
     <message>
-        <location filename="../../layouts/Index.py" line="79"/>
+        <location filename="../../layouts/Index.py" line="77"/>
         <source>newStoreThreadButton</source>
         <translation>新存档贴子</translation>
     </message>
@@ -112,25 +112,43 @@
         <translation>导出选中日志</translation>
     </message>
     <message>
-        <location filename="../../layouts/LogWindow.py" line="223"/>
+        <location filename="../../layouts/LogWindow.py" line="236"/>
         <source>getSaveFileNameDialogTitle</source>
         <translation>选择导出文件</translation>
     </message>
     <message>
-        <location filename="../../layouts/LogWindow.py" line="249"/>
-        <location filename="../../layouts/LogWindow.py" line="263"/>
+        <location filename="../../layouts/LogWindow.py" line="262"/>
+        <location filename="../../layouts/LogWindow.py" line="276"/>
         <source>exportFailedDialogTitle</source>
         <translation>导不出来</translation>
     </message>
     <message>
-        <location filename="../../layouts/LogWindow.py" line="250"/>
+        <location filename="../../layouts/LogWindow.py" line="263"/>
         <source>exportFailedEmptyList</source>
         <translation>没有日志可导出</translation>
     </message>
     <message>
-        <location filename="../../layouts/LogWindow.py" line="264"/>
+        <location filename="../../layouts/LogWindow.py" line="277"/>
         <source>exportFailedNoSelection</source>
         <translation>没有选中任何日志</translation>
+    </message>
+</context>
+<context>
+    <name>MainWindow</name>
+    <message>
+        <location filename="../../Entry.py" line="38"/>
+        <source>tab_Index</source>
+        <translation>首页</translation>
+    </message>
+    <message>
+        <location filename="../../Entry.py" line="41"/>
+        <source>tab_FindInvalid</source>
+        <translation>查找无效目录/文件</translation>
+    </message>
+    <message>
+        <location filename="../../Entry.py" line="44"/>
+        <source>tab_LogWindow</source>
+        <translation>日志</translation>
     </message>
 </context>
 <context>

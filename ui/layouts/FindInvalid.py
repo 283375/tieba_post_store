@@ -20,6 +20,7 @@ from PySide6.QtCore import (
 )
 
 from api.thread import LocalThread
+from ui.sharedVars import workDirectoryObject
 from ui.implements.WorkDirectory import WorkDirectory
 
 
@@ -103,6 +104,8 @@ class Layout_FindInvalid(QWidget, Ui_Layout_FindInvalid):
         )
 
         self.deleteFrame_delete.clicked.connect(self.deleteConfirm)
+
+        workDirectoryObject.dirScanResult.connect(self.scanComplete)
 
     def quickSelect(self, action: str):
         setSelectState = lambda index, const: self.listView.selectionModel().select(

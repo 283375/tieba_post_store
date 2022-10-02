@@ -1,14 +1,9 @@
-import logging
-
-from PySide6.QtCore import QTranslator
-from PySide6.QtWidgets import QMainWindow, QWidget, QTabWidget, QVBoxLayout
+from PySide6.QtCore import QCoreApplication, QTranslator
+from PySide6.QtWidgets import QMainWindow, QTabWidget
 
 from ui import sharedVars
 from ui.layouts import Index, FindInvalid, LogWindow
 from ui.resources import main_qrc
-
-logger = logging.getLogger("root")
-logger.setLevel(logging.DEBUG)
 
 app = sharedVars.app
 
@@ -17,40 +12,37 @@ translator.load(":/lang/zh_CN.qm")
 app.installTranslator(translator)
 
 
-tab = QTabWidget()
-indexWidget = Index.Layout_Index()
-logWindowWidget = LogWindow.Layout_LogWindow()
-findInvalidWidget = FindInvalid.Layout_FindInvalid()
+class MainWindow(QMainWindow):
+    def __init__(self, *args, **kwargs):
+        super(MainWindow, self).__init__(*args, **kwargs)
+        self.setWindowTitle("tieba_post_store")
+        self.setStatusBar(sharedVars.statusBar)
 
-sharedVars.workDirectoryObject.dirScanValidResult.connect(
-    indexWidget.threadList.dirScanComplete
-)
-sharedVars.workDirectoryObject.dirScanResult.connect(findInvalidWidget.scanComplete)
-indexWidget.threadList.threadSelected.connect(indexWidget.updateLocalThread)
+        self.tabWidget = QTabWidget(self)
 
-# All widgets are now initialized and connected to the signals,
-# so we could now run a scan, emit the result to the widgets.
-sharedVars.workDirectoryObject.scan()
+        self.layout_Index = Index.Layout_Index(self.tabWidget)
+        self.layout_FindInvalid = FindInvalid.Layout_FindInvalid(self.tabWidget)
+        self.layout_LogWindow = LogWindow.Layout_LogWindow(self.tabWidget)
 
+        self.tabWidget.addTab(self.layout_Index, "Index")
+        self.tabWidget.addTab(self.layout_FindInvalid, "Find Invalid Files")
+        self.tabWidget.addTab(self.layout_LogWindow, "Log")
+        
+        self.setCentralWidget(self.tabWidget)
 
-class LogWindowForwardHandler(logging.Handler):
-    def handle(self, record):
-        logWindowWidget._model.appendLogRecord(record)
-        return True
+        self.retranslateUi()
 
+    def retranslateUi(self, *args):
+        self.tabWidget.setTabText(
+            0, QCoreApplication.translate("MainWindow", "tab_Index")
+        )
+        self.tabWidget.setTabText(
+            1, QCoreApplication.translate("MainWindow", "tab_FindInvalid")
+        )
+        self.tabWidget.setTabText(
+            2, QCoreApplication.translate("MainWindow", "tab_LogWindow")
+        )
 
-logger.addHandler(LogWindowForwardHandler())
-
-tab.addTab(indexWidget, "Index")
-tab.addTab(findInvalidWidget, "Find Invalid")
-tab.addTab(logWindowWidget, "Log")
-
-centralWidget = QWidget()
-centralWidget.layout = QVBoxLayout(centralWidget)
-centralWidget.layout.addWidget(tab)
-
-mainWindow = QMainWindow()
-mainWindow.setCentralWidget(centralWidget)
-mainWindow.setWindowTitle("tieba_post_store")
-mainWindow.resize(800, 600)
-mainWindow.setStatusBar(sharedVars.statusBar)
+        self.layout_Index.retranslateUi()
+        self.layout_FindInvalid.retranslateUi()
+        self.layout_LogWindow.retranslateUi()

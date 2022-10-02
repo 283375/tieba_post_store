@@ -49,8 +49,6 @@ class WorkDirectoryObject(QObject):
         self.scanThread.scanningDir.connect(lambda dir: self.dirScanning.emit(dir))
         self.scanThread.scanResult.connect(self.threadScanComplete)
 
-        self.setWorkDirectory(QDir.currentPath())
-
     def setWorkDirectory(self, dir: str):
         self.dir = os.path.abspath(dir)
         self.dirChanged.emit(self.dir)

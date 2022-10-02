@@ -4,67 +4,67 @@
 <context>
     <name>Layout_FindInvalid</name>
     <message>
-        <location filename="../../layouts/FindInvalid.py" line="70"/>
+        <location filename="../../layouts/FindInvalid.py" line="71"/>
         <source>recycleCheckBox</source>
         <translation>Move to recycle bin</translation>
     </message>
     <message>
-        <location filename="../../layouts/FindInvalid.py" line="73"/>
+        <location filename="../../layouts/FindInvalid.py" line="74"/>
         <source>deleteButton</source>
         <translation>Delete</translation>
     </message>
     <message>
-        <location filename="../../layouts/FindInvalid.py" line="76"/>
+        <location filename="../../layouts/FindInvalid.py" line="77"/>
         <source>quickActionsTitle</source>
         <translation>Quick Actions</translation>
     </message>
     <message>
-        <location filename="../../layouts/FindInvalid.py" line="79"/>
+        <location filename="../../layouts/FindInvalid.py" line="80"/>
         <source>quickActions_SelectAll</source>
         <translation>Select All</translation>
     </message>
     <message>
-        <location filename="../../layouts/FindInvalid.py" line="82"/>
+        <location filename="../../layouts/FindInvalid.py" line="83"/>
         <source>quickActions_DeselectAll</source>
         <translation>Deselect All</translation>
     </message>
     <message>
-        <location filename="../../layouts/FindInvalid.py" line="87"/>
+        <location filename="../../layouts/FindInvalid.py" line="88"/>
         <source>quickActions_InvertSelection</source>
         <translation>Invert Selection</translation>
     </message>
     <message>
-        <location filename="../../layouts/FindInvalid.py" line="133"/>
+        <location filename="../../layouts/FindInvalid.py" line="136"/>
         <source>deleteConfirmDialogMessage</source>
         <comment>recycle</comment>
         <translation>These files (or directories) will be recycled:&lt;br&gt;&lt;br&gt;{0}&lt;br&gt;&lt;br&gt;Are you sure?</translation>
     </message>
     <message>
-        <location filename="../../layouts/FindInvalid.py" line="138"/>
+        <location filename="../../layouts/FindInvalid.py" line="141"/>
         <source>deleteConfirmDialogMessage</source>
         <comment>directDelete</comment>
         <translation>These files (or directories) will be &lt;b&gt;deleted directly&lt;/b&gt;:&lt;br&gt;&lt;br&gt;{0}&lt;br&gt;&lt;br&gt;Are you sure?</translation>
     </message>
     <message>
-        <location filename="../../layouts/FindInvalid.py" line="141"/>
+        <location filename="../../layouts/FindInvalid.py" line="144"/>
         <source>deleteConfirmDialogTitle</source>
         <translation>Confirm deletion</translation>
     </message>
     <message>
-        <location filename="../../layouts/FindInvalid.py" line="162"/>
-        <location filename="../../layouts/FindInvalid.py" line="178"/>
+        <location filename="../../layouts/FindInvalid.py" line="165"/>
+        <location filename="../../layouts/FindInvalid.py" line="181"/>
         <source>deleteFailedDialogTitle</source>
         <translation>Failed to delete</translation>
     </message>
     <message>
-        <location filename="../../layouts/FindInvalid.py" line="169"/>
+        <location filename="../../layouts/FindInvalid.py" line="172"/>
         <source>deleteFailedDialogMessage</source>
         <comment>deleteFailed</comment>
         <translatorcomment>0: fileAbsPath</translatorcomment>
         <translation>Cannot delete {0}, skipping.</translation>
     </message>
     <message>
-        <location filename="../../layouts/FindInvalid.py" line="181"/>
+        <location filename="../../layouts/FindInvalid.py" line="184"/>
         <source>deleteFailedDialogMessage</source>
         <comment>fileNotFound</comment>
         <translatorcomment>0: fileAbsPath</translatorcomment>
@@ -74,12 +74,12 @@
 <context>
     <name>Layout_Index</name>
     <message>
-        <location filename="../../layouts/Index.py" line="32"/>
+        <location filename="../../layouts/Index.py" line="31"/>
         <source>emptyPlaceholderLabel</source>
         <translation>No store selected</translation>
     </message>
     <message>
-        <location filename="../../layouts/Index.py" line="79"/>
+        <location filename="../../layouts/Index.py" line="77"/>
         <source>newStoreThreadButton</source>
         <translation>Create a new store</translation>
     </message>
@@ -112,25 +112,43 @@
         <translation>Export selection</translation>
     </message>
     <message>
-        <location filename="../../layouts/LogWindow.py" line="223"/>
+        <location filename="../../layouts/LogWindow.py" line="236"/>
         <source>getSaveFileNameDialogTitle</source>
         <translation>Select export file</translation>
     </message>
     <message>
-        <location filename="../../layouts/LogWindow.py" line="249"/>
-        <location filename="../../layouts/LogWindow.py" line="263"/>
+        <location filename="../../layouts/LogWindow.py" line="262"/>
+        <location filename="../../layouts/LogWindow.py" line="276"/>
         <source>exportFailedDialogTitle</source>
         <translation>Cannot export</translation>
     </message>
     <message>
-        <location filename="../../layouts/LogWindow.py" line="250"/>
+        <location filename="../../layouts/LogWindow.py" line="263"/>
         <source>exportFailedEmptyList</source>
         <translation>Empty log list</translation>
     </message>
     <message>
-        <location filename="../../layouts/LogWindow.py" line="264"/>
+        <location filename="../../layouts/LogWindow.py" line="277"/>
         <source>exportFailedNoSelection</source>
         <translation>Selection is empty</translation>
+    </message>
+</context>
+<context>
+    <name>MainWindow</name>
+    <message>
+        <location filename="../../Entry.py" line="38"/>
+        <source>tab_Index</source>
+        <translation>Index</translation>
+    </message>
+    <message>
+        <location filename="../../Entry.py" line="41"/>
+        <source>tab_FindInvalid</source>
+        <translation>Find Invalid Files</translation>
+    </message>
+    <message>
+        <location filename="../../Entry.py" line="44"/>
+        <source>tab_LogWindow</source>
+        <translation>Logs</translation>
     </message>
 </context>
 <context>

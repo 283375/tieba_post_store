@@ -25,6 +25,8 @@ class ThreadList(QListView):
 
         self.activated.connect(self.__itemChanged)
 
+        workDirectoryObject.dirScanValidResult.connect(self.dirScanComplete)
+
     @Slot(list)
     def dirScanComplete(self, validResult: list[tuple[str, LocalThread]]):
         statusBar.showMessage(

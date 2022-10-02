@@ -88,7 +88,9 @@ class Layout_Index(QWidget, Ui_Layout_Index):
         super(Layout_Index, self).__init__(parent)
         self.setupUi(self)
 
-    @Slot()
+        self.threadList.threadSelected.connect(self.updateLocalThread)
+
+    @Slot(LocalThread)
     def updateLocalThread(self, lt: LocalThread):
         oldWidget = self.threadInfoFrameLayout.itemAt(0).widget()
 

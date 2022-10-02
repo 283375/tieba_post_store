@@ -188,6 +188,16 @@ class Ui_Layout_LogWindow(object):
         )
 
 
+class LogWindowForwardHandler(logging.Handler):
+    def __init__(self, model):
+        super(LogWindowForwardHandler, self).__init__()
+        self.model = model
+
+    def handle(self, record):
+        self.model.appendLogRecord(record)
+        return True
+
+
 class Layout_LogWindow(QWidget, Ui_Layout_LogWindow):
     def __init__(self, parent=None):
         super(Layout_LogWindow, self).__init__(parent)
@@ -195,6 +205,9 @@ class Layout_LogWindow(QWidget, Ui_Layout_LogWindow):
 
         self._model = LogRecordModel()
         self._model.rowsInserted.connect(self.modelRowsInserted)
+
+        self.logRecordForwarder = LogWindowForwardHandler(self._model)
+        logger.addHandler(self.logRecordForwarder)
 
         self._limitModel = LogRecordLimitModel()
         self._limitModel.setSourceModel(self._model)
