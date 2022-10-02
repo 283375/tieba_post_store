@@ -10,34 +10,10 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QHBoxLayout,
 )
-from PySide6.QtCore import Qt, QAbstractListModel, QModelIndex, QItemSelectionModel, QFile
+from PySide6.QtCore import Qt, QStringListModel, QModelIndex, QItemSelectionModel, QFile
 
 from api.thread import LocalThread
 from ui.sharedVars import workDirectoryObject
-
-
-class ListModel(QAbstractListModel):
-    def __init__(self, parent=None):
-        super(ListModel, self).__init__(parent)
-        self.__list = []
-
-    def rowCount(self, parent=None) -> int:
-        return len(self.__list)
-
-    def data(self, index: QModelIndex, role: int = Qt.DisplayRole):
-        if index.row() < 0 or index.row() >= self.rowCount():
-            return None
-        return self.__list[index.row()].get(role)
-
-    def setList(self, _list: list):
-        self.beginRemoveRows(QModelIndex(), 0, self.rowCount() - 1)
-        self.__list.clear()
-        self.endRemoveRows()
-
-        self.beginInsertRows(QModelIndex(), 0, len(_list) - 1)
-        for item in _list:
-            self.__list.append({Qt.DisplayRole: str(item), Qt.UserRole: str(item)})
-        self.endInsertRows()
 
 
 class FindInvalid(QWidget):
@@ -47,7 +23,7 @@ class FindInvalid(QWidget):
         self.dirLabel = QLabel()
         workDirectoryObject.dirChanged.connect(lambda dir: self.dirLabel.setText(dir))
 
-        self._model = ListModel()
+        self._model = QStringListModel()
         self.listView = QListView()
         self.listView.setModel(self._model)
         self.listView.setSelectionMode(QListView.SelectionMode.MultiSelection)
@@ -99,7 +75,7 @@ class FindInvalid(QWidget):
 
     def scanComplete(self, result: list[tuple[str, LocalThread | None]]):
         invalidDirs = [dir for dir, t in result if t is None]
-        self._model.setList(invalidDirs)
+        self._model.setStringList(invalidDirs)
         self.selectAction("all")
 
     def deleteConfirm(self):
