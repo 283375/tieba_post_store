@@ -5,6 +5,7 @@ html_viewer/
 
 # Ignore compiled resources
 *.qm
+*_qrc.py
 
 ## Auto generated
 # Byte-compiled / optimized / DLL files
