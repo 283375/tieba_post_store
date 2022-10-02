@@ -12,6 +12,7 @@ class WorkDirectory(QWidget, Ui_WorkDirectory):
         self.setupUi(self)
 
         self.dirLabel.setText(workDirectoryObject.dir)
+        workDirectoryObject.dirChanged.connect(self.dirLabel.setText)
 
     @Slot()
     def on_WD_changeDirButton_clicked(self):

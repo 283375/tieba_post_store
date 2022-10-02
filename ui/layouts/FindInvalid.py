@@ -13,15 +13,14 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QStringListModel, QModelIndex, QItemSelectionModel, QFile
 
 from api.thread import LocalThread
-from ui.sharedVars import workDirectoryObject
+from ui.implements.WorkDirectory import WorkDirectory
 
 
 class FindInvalid(QWidget):
     def __init__(self, parent=None):
         super(FindInvalid, self).__init__(parent)
 
-        self.dirLabel = QLabel()
-        workDirectoryObject.dirChanged.connect(lambda dir: self.dirLabel.setText(dir))
+        self.workDirectoryWidget = WorkDirectory()
 
         self._model = QStringListModel()
         self.listView = QListView()
@@ -56,7 +55,7 @@ class FindInvalid(QWidget):
         self.bottomLayout.addLayout(self.functionWrapper)
 
         self.layout = QVBoxLayout(self)
-        self.layout.addWidget(self.dirLabel)
+        self.layout.addWidget(self.workDirectoryWidget)
         self.layout.addLayout(self.bottomLayout)
 
     def selectAction(self, action: str):

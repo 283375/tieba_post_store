@@ -27,6 +27,9 @@ sharedVars.workDirectoryObject.dirScanValidResult.connect(
 sharedVars.workDirectoryObject.dirScanResult.connect(findInvalidWidget.scanComplete)
 indexWidget.threadListWidget.threadSelected.connect(indexWidget.updateLocalThread)
 
+# All widgets are now initialized and connected to the signals,
+# so we could now run a scan, emit the result to the widgets. 
+sharedVars.workDirectoryObject.scan()
 
 class LogWindowForwardHandler(logging.Handler):
     def handle(self, record):

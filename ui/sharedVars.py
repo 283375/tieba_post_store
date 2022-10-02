@@ -37,6 +37,7 @@ class ScanWorkDirectoryThread(QThread):
 
 class WorkDirectoryObject(QObject):
     dir = QDir.currentPath()
+
     dirChanged = Signal(str)
     dirScanning = Signal(str)
     dirScanResult = Signal(list)
