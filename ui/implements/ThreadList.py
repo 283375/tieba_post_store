@@ -4,7 +4,7 @@ from PySide6.QtWidgets import QListView
 
 from PySide6.QtCore import QModelIndex, Signal, Slot
 
-from ui._vars import statusBar, workDirectoryObject
+from ui.sharedVars import statusBar, workDirectoryObject
 from api.thread import LocalThread
 
 

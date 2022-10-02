@@ -8,7 +8,7 @@ from PySide6.QtWidgets import QDialog, QPushButton, QMessageBox
 from PySide6.QtCore import QCoreApplication, Signal, Slot
 
 from api.thread import LightRemoteThread, LocalThread
-from ui._vars import workDirectoryObject
+from ui.sharedVars import workDirectoryObject
 
 logger = logging.getLogger("root.ui.NewThread")
 

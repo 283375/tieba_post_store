@@ -7,7 +7,7 @@ from PySide6.QtCore import Qt, QThread, Signal, Slot
 
 from api.thread import LocalThread
 from utils.progress import Progress
-from ui._vars import app, workDirectoryObject
+from ui.sharedVars import app, workDirectoryObject
 
 logger = logging.getLogger("root")
 

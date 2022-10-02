@@ -3,13 +3,13 @@ import logging
 from PySide6.QtCore import QTranslator
 from PySide6.QtWidgets import QMainWindow, QWidget, QTabWidget, QVBoxLayout
 
-from ui import _vars
+from ui import sharedVars
 from ui.layouts import Index, FindInvalid, LogWindow
 
 logger = logging.getLogger("root")
 logger.setLevel(logging.DEBUG)
 
-app = _vars.app
+app = sharedVars.app
 
 translator = QTranslator(app)
 translator.load("./ui/lang/zh_CN.qm")
@@ -21,10 +21,10 @@ indexWidget = Index.IndexWidget()
 logWindowWidget = LogWindow.LogWindowWidget()
 findInvalidWidget = FindInvalid.FindInvalid()
 
-_vars.workDirectoryObject.dirScanValidResult.connect(
+sharedVars.workDirectoryObject.dirScanValidResult.connect(
     indexWidget.threadListWidget.dirScanComplete
 )
-_vars.workDirectoryObject.dirScanResult.connect(findInvalidWidget.scanComplete)
+sharedVars.workDirectoryObject.dirScanResult.connect(findInvalidWidget.scanComplete)
 indexWidget.threadListWidget.threadSelected.connect(indexWidget.updateLocalThread)
 
 
@@ -48,4 +48,4 @@ mainWindow = QMainWindow()
 mainWindow.setCentralWidget(centralWidget)
 mainWindow.setWindowTitle("tieba_post_store")
 mainWindow.resize(800, 600)
-mainWindow.setStatusBar(_vars.statusBar)
+mainWindow.setStatusBar(sharedVars.statusBar)
