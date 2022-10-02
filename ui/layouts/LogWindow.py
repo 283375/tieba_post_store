@@ -2,8 +2,9 @@ import time
 import logging
 
 from PySide6.QtWidgets import (
-    QListView,
     QWidget,
+    QFrame,
+    QListView,
     QSpinBox,
     QLabel,
     QSpacerItem,
@@ -20,58 +21,54 @@ from PySide6.QtCore import (
     QIdentityProxyModel,
     QModelIndex,
     QByteArray,
+    QCoreApplication,
+    QMetaObject,
 )
 
 
 logger = logging.getLogger("root")
 
-previewFormatter = logging.Formatter(
-    "[%(asctime)s %(levelname)s][%(name)s > %(funcName)s()>> %(message)s",
+formatter = logging.Formatter(
+    "[%(asctime)s %(levelno)s:%(levelname)s][%(name)s > %(funcName)s()>> %(message)s",
     "%m-%d %H:%M:%S",
 )
-saveFormatter = logging.Formatter(
-    "[%(asctime)s %(levelno)s:%(levelname)s][%(name)s > %(funcName)s()>> %(message)s",
-    "%Y-%m-%d %H:%M:%S",
-)
 
 
-class LogRecordAbstractListModel(QAbstractListModel):
+class LogRecordModel(QAbstractListModel):
     __logRecordList = []
-    LogRecordRole = 20
+    LogRecordRole = Qt.UserRole + 1
 
     def __init__(self, parent=None):
-        super(LogRecordAbstractListModel, self).__init__(parent)
+        super(LogRecordModel, self).__init__(parent)
 
-    def rowCount(self, parent=None) -> int:
+    def rowCount(self, parent=None):
         return len(self.__logRecordList)
 
-    def roleNames(self) -> dict[int, QByteArray]:
+    def roleNames(self):
         return {
             **super().roleNames(),
-            self.LogRecordRole: QByteArray(b"LogRecord"),
+            self.LogRecordRole: QByteArray("LogRecord"),
         }
 
-    def data(self, index: QModelIndex, role: int = Qt.DisplayRole):
+    def data(self, index, role=Qt.DisplayRole):
+        # sourcery skip: remove-unnecessary-else, swap-if-else-branches
         if not index.isValid() or index.row() >= self.rowCount():
             return None
-        return self.__logRecordList[index.row()].get(role)
+
+        if role == Qt.DisplayRole:
+            logRecord = self.__logRecordList[index.row()].get(self.LogRecordRole)
+            return formatter.format(logRecord) if logRecord else None
+        else:
+            return self.__logRecordList[index.row()].get(role)
 
     def appendLogRecord(self, record: logging.LogRecord):
         _lastRow = self.rowCount()
         self.beginInsertRows(QModelIndex(), _lastRow, _lastRow)
-        self.__logRecordList.append(
-            {
-                Qt.DisplayRole: previewFormatter.format(record),
-                self.LogRecordRole: record,
-            }
-        )
+        self.__logRecordList.append({self.LogRecordRole: record})
         self.endInsertRows()
 
-    def _getAllLogRecords(self):
-        return [rObj[self.LogRecordRole] for rObj in self.__logRecordList]
 
-
-class LogRecordDisplayLimitModel(QIdentityProxyModel):
+class LogRecordLimitModel(QIdentityProxyModel):
     displayLimit = 100
 
     def setDisplayLimit(self, value: int):
@@ -79,7 +76,7 @@ class LogRecordDisplayLimitModel(QIdentityProxyModel):
         self.displayLimit = value
         self.endResetModel()
 
-    def rowCount(self, parent: QModelIndex = None) -> int:
+    def rowCount(self, parent=None):
         if self.sourceModel():
             return (
                 self.sourceModel().rowCount(parent)
@@ -89,7 +86,7 @@ class LogRecordDisplayLimitModel(QIdentityProxyModel):
         else:
             return 0
 
-    def data(self, proxyIndex: QModelIndex, role: int):
+    def data(self, proxyIndex, role):
         if self.sourceModel():
             if self.rowCount() < self.displayLimit:
                 return self.sourceModel().data(proxyIndex, role)
@@ -103,89 +100,166 @@ class LogRecordDisplayLimitModel(QIdentityProxyModel):
             return None
 
 
-class LogWindowWidget(QWidget):
-    def __init__(self, parent=None):
-        super(LogWindowWidget, self).__init__(parent)
+class Ui_Layout_LogWindow(object):
+    def setupUi(self, widget: QWidget):
+        self.layout = QVBoxLayout(widget)
 
-        self.logLimitSpinBox = QSpinBox()
+        # upperFrame start
+        self.upperFrame = QFrame(widget)
+        self.upperFrameLayout = QHBoxLayout(self.upperFrame)
+
+        # upperFrame -> logLimitFrame start
+        self.logLimitFrame = QFrame(self.upperFrame)
+        self.logLimitLayout = QHBoxLayout(self.logLimitFrame)
+
+        self.logLimitPrefix = QLabel(self.logLimitFrame)
+        self.logLimitLayout.addWidget(self.logLimitPrefix)
+
+        self.logLimitSpinBox = QSpinBox(self.logLimitFrame)
         self.logLimitSpinBox.setMaximum(10000)
         self.logLimitSpinBox.setSingleStep(10)
         self.logLimitSpinBox.setValue(100)
-        self.logCountLabel = QLabel("0")
-        self.logLimitUpdatePushButton = QPushButton("更新显示限制")
-        spacer = QSpacerItem(1, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
-        self.upperWrapper = QHBoxLayout()
-        self.upperWrapper.addWidget(QLabel("显示"))
-        self.upperWrapper.addWidget(self.logLimitSpinBox)
-        self.upperWrapper.addWidget(QLabel(" / "))
-        self.upperWrapper.addWidget(self.logCountLabel)
-        self.upperWrapper.addWidget(QLabel(" 条日志"))
-        self.upperWrapper.addSpacerItem(spacer)
-        self.upperWrapper.addWidget(self.logLimitUpdatePushButton)
+        self.logLimitLayout.addWidget(self.logLimitSpinBox)
 
-        self._view = QListView(self)
-        self._view.setAcceptDrops(False)
-        self._view.setDragEnabled(False)
-        self._view.setSelectionMode(QListView.ExtendedSelection)
+        self.logLimitSeperateSlash = QLabel("/", self.logLimitFrame)
+        self.logLimitLayout.addWidget(self.logLimitSeperateSlash)
 
-        self._model = LogRecordAbstractListModel()
+        self.logCount = QLabel("0", self.logLimitFrame)
+        self.logLimitLayout.addWidget(self.logCount)
+
+        self.logLimitSuffix = QLabel(self.logLimitFrame)
+        self.logLimitLayout.addWidget(self.logLimitSuffix)
+
+        self.upperFrameLayout.addWidget(self.logLimitFrame)
+        # upperFrame -> logLimitFrame end
+
+        self.horizontalSpacerItem = QSpacerItem(
+            0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum
+        )
+        self.upperFrameLayout.addSpacerItem(self.horizontalSpacerItem)
+
+        self.setLogLimitButton = QPushButton(self.upperFrame)
+        self.upperFrameLayout.addWidget(self.setLogLimitButton)
+
+        self.layout.addWidget(self.upperFrame)
+        # upperFrame end
+
+        self.listView = QListView(widget)
+        self.listView.setAcceptDrops(False)
+        self.listView.setDragEnabled(False)
+        self.listView.setSelectionMode(QListView.ExtendedSelection)
+
+        self.layout.addWidget(self.listView)
+
+        self.fileDialog = QFileDialog(widget)
+
+        # exportFrame start
+        self.exportFrame = QFrame(widget)
+        self.exportLayout = QHBoxLayout(self.exportFrame)
+
+        self.exportAllButton = QPushButton(self.exportFrame)
+        self.exportLayout.addWidget(self.exportAllButton)
+
+        self.exportSelectionButton = QPushButton(self.exportFrame)
+        self.exportLayout.addWidget(self.exportSelectionButton)
+
+        self.layout.addWidget(self.exportFrame)
+        # exportFrame end
+
+        self.retranslateUi(widget)
+
+        QMetaObject.connectSlotsByName(widget)
+
+    def retranslateUi(self, widget: QWidget = None):
+        self.logLimitPrefix.setText(
+            QCoreApplication.translate("Layout_LogWindow", "logLimitPrefix")
+        )
+        self.logLimitSuffix.setText(
+            QCoreApplication.translate("Layout_LogWindow", "logLimitSuffix")
+        )
+        self.setLogLimitButton.setText(
+            QCoreApplication.translate("Layout_LogWindow", "setLogLimitButton")
+        )
+        self.exportAllButton.setText(
+            QCoreApplication.translate("Layout_LogWindow", "exportAllButton")
+        )
+        self.exportSelectionButton.setText(
+            QCoreApplication.translate("Layout_LogWindow", "exportSelectionButton")
+        )
+
+
+class Layout_LogWindow(QWidget, Ui_Layout_LogWindow):
+    def __init__(self, parent=None):
+        super(Layout_LogWindow, self).__init__(parent)
+        self.setupUi(self)
+
+        self._model = LogRecordModel()
         self._model.rowsInserted.connect(self.modelRowsInserted)
-        self._limitModel = LogRecordDisplayLimitModel()
-        self._limitModel.setSourceModel(self._model)
-        self.logLimitUpdatePushButton.clicked.connect(self.setLimitModelDisplayLimit)
-        self._view.setModel(self._limitModel)
 
-        self.fileDialog = QFileDialog()
-        self.buttonWrapper = QHBoxLayout()
-        self.exportSelectionButton = QPushButton("导出选中日志")
-        self.exportAllButton = QPushButton("导出所有日志")
+        self._limitModel = LogRecordLimitModel()
+        self._limitModel.setSourceModel(self._model)
+
+        self.setLogLimitButton.clicked.connect(self.setDisplayLimit)
+
+        self.listView.setModel(self._limitModel)
+
         self.exportSelectionButton.clicked.connect(self.exportSelection)
         self.exportAllButton.clicked.connect(self.exportAll)
-        self.buttonWrapper.addWidget(self.exportSelectionButton)
-        self.buttonWrapper.addWidget(self.exportAllButton)
 
-        self.layout = QVBoxLayout(self)
-        self.layout.addLayout(self.upperWrapper)
-        self.layout.addWidget(self._view)
-        self.layout.addLayout(self.buttonWrapper)
+    def modelRowsInserted(self, *args):
+        # args: (topLeft, bottomRight, roles)
+        self.logCount.setText(str(self._model.rowCount()))
+        self.listView.scrollToBottom()
 
-    def modelRowsInserted(
-        self, topLeft: QModelIndex, bottomRight: QModelIndex, roles: list[int]
-    ):
-        self.logCountLabel.setText(str(self._model.rowCount()))
-        self._view.scrollToBottom()
-
-    def setLimitModelDisplayLimit(self):
+    def setDisplayLimit(self):
         self._limitModel.setDisplayLimit(self.logLimitSpinBox.value())
 
     def getSaveFilename(self, __time: time.struct_time = None):
         _time = __time or time.localtime()
         timeStr = time.strftime("%Y%m%d-%H%M%S", _time)
         filename = f"tieba_post_store_{timeStr}.log"
-        return self.fileDialog.getSaveFileName(self, "选择导出文件路径", filename)
+        return self.fileDialog.getSaveFileName(
+            self,
+            QCoreApplication.translate("Layout_LogWindow", "getSaveFileNameDialogTitle"),
+            filename,
+        )
 
     def _writeLogToFile(self, filename, logs: list[logging.LogRecord]) -> None:
-        humanReadable = [saveFormatter.format(r) for r in logs]
+        humanReadable = [formatter.format(r) for r in logs]
         details = [str(r.__dict__) for r in logs]
 
         with open(filename, "w", encoding="utf-8") as f:
             f.write("----- Human readable -----\n")
-            [f.write(f"{_}\n") for _ in humanReadable]
+            [f.write(f"{logText}\n") for logText in humanReadable]
             f.write("\n----- Details -----\n")
-            [f.write(f"{_}\n") for _ in details]
+            [f.write(f"{logDict}\n") for logDict in details]
 
     def exportAll(self):
-        if records := self._model._getAllLogRecords():
+        records = []
+        for i in range(self._model.rowCount()):
+            index = self._model.index(i, 0, QModelIndex())
+            records.append(self._model.data(index, LogRecordModel.LogRecordRole))
+
+        if records:
             if filename := self.getSaveFilename()[0]:
                 self._writeLogToFile(filename, records)
         else:
-            QMessageBox.warning(self, "导不出来", "没有日志可供导出")
+            QMessageBox.warning(
+                self,
+                QCoreApplication.translate("Layout_LogWindow", "exportFailedDialogTitle"),
+                QCoreApplication.translate("Layout_LogWindow", "exportFailedEmptyList"),
+            )
 
     def exportSelection(self):
         if records := [
-            i.data(self._model.LogRecordRole) for i in self._view.selectedIndexes()
+            index.data(LogRecordModel.LogRecordRole)
+            for index in self.listView.selectedIndexes()
         ]:
             if filename := self.getSaveFilename()[0]:
                 self._writeLogToFile(filename, records)
         else:
-            QMessageBox.warning(self, "导不出来", "没有选择任何日志")
+            QMessageBox.warning(
+                self,
+                QCoreApplication.translate("Layout_LogWindow", "exportFailedDialogTitle"),
+                QCoreApplication.translate("Layout_LogWindow", "exportFailedNoSelection"),
+            )

@@ -18,7 +18,7 @@ app.installTranslator(translator)
 
 tab = QTabWidget()
 indexWidget = Index.IndexWidget()
-logWindowWidget = LogWindow.LogWindowWidget()
+logWindowWidget = LogWindow.Layout_LogWindow()
 findInvalidWidget = FindInvalid.Layout_FindInvalid()
 
 sharedVars.workDirectoryObject.dirScanValidResult.connect(

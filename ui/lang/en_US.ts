@@ -4,71 +4,120 @@
 <context>
     <name>Layout_FindInvalid</name>
     <message>
-        <location filename="../layouts/FindInvalid.py" line="71"/>
+        <location filename="../layouts/FindInvalid.py" line="70"/>
         <source>recycleCheckBox</source>
         <translation>Move to recycle bin</translation>
     </message>
     <message>
-        <location filename="../layouts/FindInvalid.py" line="74"/>
+        <location filename="../layouts/FindInvalid.py" line="73"/>
         <source>deleteButton</source>
         <translation>Delete</translation>
     </message>
     <message>
-        <location filename="../layouts/FindInvalid.py" line="77"/>
+        <location filename="../layouts/FindInvalid.py" line="76"/>
         <source>quickActionsTitle</source>
         <translation>Quick Actions</translation>
     </message>
     <message>
-        <location filename="../layouts/FindInvalid.py" line="80"/>
+        <location filename="../layouts/FindInvalid.py" line="79"/>
         <source>quickActions_SelectAll</source>
         <translation>Select All</translation>
     </message>
     <message>
-        <location filename="../layouts/FindInvalid.py" line="83"/>
+        <location filename="../layouts/FindInvalid.py" line="82"/>
         <source>quickActions_DeselectAll</source>
         <translation>Deselect All</translation>
     </message>
     <message>
-        <location filename="../layouts/FindInvalid.py" line="88"/>
+        <location filename="../layouts/FindInvalid.py" line="87"/>
         <source>quickActions_InvertSelection</source>
         <translation>Invert Selection</translation>
     </message>
     <message>
-        <location filename="../layouts/FindInvalid.py" line="134"/>
+        <location filename="../layouts/FindInvalid.py" line="133"/>
         <source>deleteConfirmDialogMessage</source>
         <comment>recycle</comment>
         <translation>These files (or directories) will be recycled:&lt;br&gt;&lt;br&gt;{0}&lt;br&gt;&lt;br&gt;Are you sure?</translation>
     </message>
     <message>
-        <location filename="../layouts/FindInvalid.py" line="139"/>
+        <location filename="../layouts/FindInvalid.py" line="138"/>
         <source>deleteConfirmDialogMessage</source>
         <comment>directDelete</comment>
         <translation>These files (or directories) will be &lt;b&gt;deleted directly&lt;/b&gt;:&lt;br&gt;&lt;br&gt;{0}&lt;br&gt;&lt;br&gt;Are you sure?</translation>
     </message>
     <message>
-        <location filename="../layouts/FindInvalid.py" line="142"/>
+        <location filename="../layouts/FindInvalid.py" line="141"/>
         <source>deleteConfirmDialogTitle</source>
         <translation>Confirm deletion</translation>
     </message>
     <message>
-        <location filename="../layouts/FindInvalid.py" line="163"/>
-        <location filename="../layouts/FindInvalid.py" line="179"/>
+        <location filename="../layouts/FindInvalid.py" line="162"/>
+        <location filename="../layouts/FindInvalid.py" line="178"/>
         <source>deleteFailedDialogTitle</source>
         <translation>Failed to delete</translation>
     </message>
     <message>
-        <location filename="../layouts/FindInvalid.py" line="170"/>
+        <location filename="../layouts/FindInvalid.py" line="169"/>
         <source>deleteFailedDialogMessage</source>
         <comment>deleteFailed</comment>
         <translatorcomment>0: fileAbsPath</translatorcomment>
         <translation>Cannot delete {0}, skipping.</translation>
     </message>
     <message>
-        <location filename="../layouts/FindInvalid.py" line="182"/>
+        <location filename="../layouts/FindInvalid.py" line="181"/>
         <source>deleteFailedDialogMessage</source>
         <comment>fileNotFound</comment>
         <translatorcomment>0: fileAbsPath</translatorcomment>
         <translation>Cannot delete non-existent file {0}.</translation>
+    </message>
+</context>
+<context>
+    <name>Layout_LogWindow</name>
+    <message>
+        <location filename="../layouts/LogWindow.py" line="176"/>
+        <source>logLimitPrefix</source>
+        <translation>Display</translation>
+    </message>
+    <message>
+        <location filename="../layouts/LogWindow.py" line="179"/>
+        <source>logLimitSuffix</source>
+        <translation>log entries</translation>
+    </message>
+    <message>
+        <location filename="../layouts/LogWindow.py" line="182"/>
+        <source>setLogLimitButton</source>
+        <translation>Update display limit</translation>
+    </message>
+    <message>
+        <location filename="../layouts/LogWindow.py" line="185"/>
+        <source>exportAllButton</source>
+        <translation>Export all</translation>
+    </message>
+    <message>
+        <location filename="../layouts/LogWindow.py" line="188"/>
+        <source>exportSelectionButton</source>
+        <translation>Export selection</translation>
+    </message>
+    <message>
+        <location filename="../layouts/LogWindow.py" line="223"/>
+        <source>getSaveFileNameDialogTitle</source>
+        <translation>Select export file</translation>
+    </message>
+    <message>
+        <location filename="../layouts/LogWindow.py" line="249"/>
+        <location filename="../layouts/LogWindow.py" line="263"/>
+        <source>exportFailedDialogTitle</source>
+        <translation>Cannot export</translation>
+    </message>
+    <message>
+        <location filename="../layouts/LogWindow.py" line="250"/>
+        <source>exportFailedEmptyList</source>
+        <translation>Empty log list</translation>
+    </message>
+    <message>
+        <location filename="../layouts/LogWindow.py" line="264"/>
+        <source>exportFailedNoSelection</source>
+        <translation>Selection is empty</translation>
     </message>
 </context>
 <context>

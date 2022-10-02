@@ -4,71 +4,120 @@
 <context>
     <name>Layout_FindInvalid</name>
     <message>
-        <location filename="../layouts/FindInvalid.py" line="71"/>
+        <location filename="../layouts/FindInvalid.py" line="70"/>
         <source>recycleCheckBox</source>
         <translation>移动至回收站</translation>
     </message>
     <message>
-        <location filename="../layouts/FindInvalid.py" line="74"/>
+        <location filename="../layouts/FindInvalid.py" line="73"/>
         <source>deleteButton</source>
         <translation>删除</translation>
     </message>
     <message>
-        <location filename="../layouts/FindInvalid.py" line="77"/>
+        <location filename="../layouts/FindInvalid.py" line="76"/>
         <source>quickActionsTitle</source>
         <translation>快速操作</translation>
     </message>
     <message>
-        <location filename="../layouts/FindInvalid.py" line="80"/>
+        <location filename="../layouts/FindInvalid.py" line="79"/>
         <source>quickActions_SelectAll</source>
         <translation>全选</translation>
     </message>
     <message>
-        <location filename="../layouts/FindInvalid.py" line="83"/>
+        <location filename="../layouts/FindInvalid.py" line="82"/>
         <source>quickActions_DeselectAll</source>
         <translation>全不选</translation>
     </message>
     <message>
-        <location filename="../layouts/FindInvalid.py" line="88"/>
+        <location filename="../layouts/FindInvalid.py" line="87"/>
         <source>quickActions_InvertSelection</source>
         <translation>反选</translation>
     </message>
     <message>
-        <location filename="../layouts/FindInvalid.py" line="134"/>
+        <location filename="../layouts/FindInvalid.py" line="133"/>
         <source>deleteConfirmDialogMessage</source>
         <comment>recycle</comment>
         <translation>以下文件（夹）将被移至回收站：&lt;br&gt;&lt;br&gt;{0}&lt;br&gt;&lt;br&gt;确定吗？</translation>
     </message>
     <message>
-        <location filename="../layouts/FindInvalid.py" line="139"/>
+        <location filename="../layouts/FindInvalid.py" line="138"/>
         <source>deleteConfirmDialogMessage</source>
         <comment>directDelete</comment>
         <translation>以下文件（夹）将被&lt;b&gt;直接删除&lt;/b&gt;：&lt;br&gt;&lt;br&gt;{0}&lt;br&gt;&lt;br&gt;确定吗？</translation>
     </message>
     <message>
-        <location filename="../layouts/FindInvalid.py" line="142"/>
+        <location filename="../layouts/FindInvalid.py" line="141"/>
         <source>deleteConfirmDialogTitle</source>
         <translation>确认删除</translation>
     </message>
     <message>
-        <location filename="../layouts/FindInvalid.py" line="163"/>
-        <location filename="../layouts/FindInvalid.py" line="179"/>
+        <location filename="../layouts/FindInvalid.py" line="162"/>
+        <location filename="../layouts/FindInvalid.py" line="178"/>
         <source>deleteFailedDialogTitle</source>
         <translation>删除失败</translation>
     </message>
     <message>
-        <location filename="../layouts/FindInvalid.py" line="170"/>
+        <location filename="../layouts/FindInvalid.py" line="169"/>
         <source>deleteFailedDialogMessage</source>
         <comment>deleteFailed</comment>
         <translatorcomment>0: fileAbsPath</translatorcomment>
         <translation>无法删除 {0}，将跳过该文件。</translation>
     </message>
     <message>
-        <location filename="../layouts/FindInvalid.py" line="182"/>
+        <location filename="../layouts/FindInvalid.py" line="181"/>
         <source>deleteFailedDialogMessage</source>
         <comment>fileNotFound</comment>
         <translatorcomment>0: fileAbsPath</translatorcomment>
         <translation>无法删除不存在的文件 {0}。</translation>
+    </message>
+</context>
+<context>
+    <name>Layout_LogWindow</name>
+    <message>
+        <location filename="../layouts/LogWindow.py" line="176"/>
+        <source>logLimitPrefix</source>
+        <translation>显示</translation>
+    </message>
+    <message>
+        <location filename="../layouts/LogWindow.py" line="179"/>
+        <source>logLimitSuffix</source>
+        <translation>条日志</translation>
+    </message>
+    <message>
+        <location filename="../layouts/LogWindow.py" line="182"/>
+        <source>setLogLimitButton</source>
+        <translation>重设显示设置</translation>
+    </message>
+    <message>
+        <location filename="../layouts/LogWindow.py" line="185"/>
+        <source>exportAllButton</source>
+        <translation>导出全部日志</translation>
+    </message>
+    <message>
+        <location filename="../layouts/LogWindow.py" line="188"/>
+        <source>exportSelectionButton</source>
+        <translation>导出选中日志</translation>
+    </message>
+    <message>
+        <location filename="../layouts/LogWindow.py" line="223"/>
+        <source>getSaveFileNameDialogTitle</source>
+        <translation>选择导出文件</translation>
+    </message>
+    <message>
+        <location filename="../layouts/LogWindow.py" line="249"/>
+        <location filename="../layouts/LogWindow.py" line="263"/>
+        <source>exportFailedDialogTitle</source>
+        <translation>导不出来</translation>
+    </message>
+    <message>
+        <location filename="../layouts/LogWindow.py" line="250"/>
+        <source>exportFailedEmptyList</source>
+        <translation>没有日志可导出</translation>
+    </message>
+    <message>
+        <location filename="../layouts/LogWindow.py" line="264"/>
+        <source>exportFailedNoSelection</source>
+        <translation>没有选中任何日志</translation>
     </message>
 </context>
 <context>
