@@ -3,11 +3,11 @@ from ui.base.StoreThread import Ui_StoreThread
 import logging
 from requests import ConnectTimeout, ReadTimeout
 from PySide6.QtWidgets import QProgressBar, QMessageBox, QWidget
-from PySide6.QtCore import Qt, QThread, Signal, Slot
+from PySide6.QtCore import Qt, QThread, QCoreApplication, Signal, Slot
 
 from api.thread import LocalThread
 from utils.progress import Progress
-from ui.sharedVars import app, workDirectoryObject
+from ui.sharedVars import workDirectoryObject
 
 logger = logging.getLogger("root")
 
@@ -69,7 +69,7 @@ class StoreThread(QWidget, Ui_StoreThread):
         progressBar.setFormat(progress.format())
         if progressBar.value() != progress.progress:
             progressBar.setValue(progress.progress)
-        app.processEvents()
+        QCoreApplication.instance().processEvents()
         # self._thread.blockSignals(False)
 
     @Slot(Progress)
