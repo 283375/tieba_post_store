@@ -4,7 +4,7 @@ import logging
 from PySide6.QtCore import QDir
 
 from ui.sharedVars import app, workDirectoryObject
-from ui.Entry import MainWindow
+from ui.MainWindow import MainWindow
 
 # fmt: off
 # import time
