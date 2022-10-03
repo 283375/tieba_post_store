@@ -1,6 +1,16 @@
 import time
 import logging
 
+from PySide6.QtCore import (
+    Qt,
+    QAbstractListModel,
+    QIdentityProxyModel,
+    QModelIndex,
+    QByteArray,
+    QCoreApplication,
+    QMetaObject,
+)
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QWidget,
     QFrame,
@@ -15,16 +25,6 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QSizePolicy,
 )
-from PySide6.QtCore import (
-    Qt,
-    QAbstractListModel,
-    QIdentityProxyModel,
-    QModelIndex,
-    QByteArray,
-    QCoreApplication,
-    QMetaObject,
-)
-
 
 logger = logging.getLogger("root")
 
@@ -139,6 +139,8 @@ class Ui_Layout_LogWindow(object):
         self.upperFrameLayout.addSpacerItem(self.horizontalSpacerItem)
 
         self.setLogLimitButton = QPushButton(self.upperFrame)
+        self.setLogLimitButton.setIcon(QIcon(":/icons/reload.svg"))
+
         self.upperFrameLayout.addWidget(self.setLogLimitButton)
 
         self.layout.addWidget(self.upperFrame)

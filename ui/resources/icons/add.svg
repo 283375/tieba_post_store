@@ -1,78 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Created with Inkscape (http://www.inkscape.org/) -->
 
-<svg
-   width="128"
-   height="128"
-   viewBox="0 0 128 128"
-   version="1.1"
-   id="svg5"
-   inkscape:version="1.2 (1:1.2.1+202207142221+cd75a1ee6d)"
-   sodipodi:docname="add.svg"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-   xmlns:cc="http://creativecommons.org/ns#">
-  <sodipodi:namedview
-     id="namedview7"
-     pagecolor="#505050"
-     bordercolor="#ffffff"
-     borderopacity="1"
-     inkscape:showpageshadow="true"
-     inkscape:pageopacity="0"
-     inkscape:pagecheckerboard="1"
-     inkscape:deskcolor="#505050"
-     inkscape:document-units="px"
-     showgrid="false"
-     inkscape:current-layer="svg5"
-     showguides="true">
-    <sodipodi:guide
-       position="19,109"
-       orientation="90,0"
-       id="guide2432"
-       inkscape:locked="false" />
-    <sodipodi:guide
-       position="19,19"
-       orientation="0,90"
-       id="guide2434"
-       inkscape:locked="false" />
-    <sodipodi:guide
-       position="109,19"
-       orientation="-90,0"
-       id="guide2436"
-       inkscape:locked="false" />
-    <sodipodi:guide
-       position="109,109"
-       orientation="0,-90"
-       id="guide2438"
-       inkscape:locked="false" />
-  </sodipodi:namedview>
-  <defs
-     id="defs2" />
-  <metadata
-     id="metadata306">
-    <rdf:RDF>
-      <cc:Work
-         rdf:about="">
-        <cc:license
-           rdf:resource="http://creativecommons.org/publicdomain/zero/1.0/" />
-      </cc:Work>
-      <cc:License
-         rdf:about="http://creativecommons.org/publicdomain/zero/1.0/">
-        <cc:permits
-           rdf:resource="http://creativecommons.org/ns#Reproduction" />
-        <cc:permits
-           rdf:resource="http://creativecommons.org/ns#Distribution" />
-        <cc:permits
-           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
-      </cc:License>
-    </rdf:RDF>
-  </metadata>
-  <path
-     id="rect2442"
-     style="stroke-width:20;stroke-miterlimit:2"
-     d="m 54,19 h 20 v 90 H 54 Z M 19,54 h 90 V 74 H 19 Z"
-     inkscape:label="add" />
+<svg width="128" height="128" viewBox="0 0 128 128" version="1.1">
+   <style>
+      .default-stroke {
+         stroke: black;
+         stroke-width: 20px;
+         stroke-linecap: butt;
+      }
+   </style>
+
+   <line x1="19" x2="109" y1="64" y2="64" class="default-stroke" />
+   <line x1="64" x2="64" y1="19" y2="109" class="default-stroke" />
 </svg>

@@ -1,4 +1,5 @@
 from PySide6.QtCore import QMetaObject, QCoreApplication
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QWidget,
     QGroupBox,
@@ -24,6 +25,7 @@ class Ui_WorkDirectory(object):
 
         self.changeDirButton = QPushButton(widget)
         self.changeDirButton.setObjectName("WD_changeDirButton")
+        self.changeDirButton.setIcon(QIcon(":/icons/folder.svg"))
 
         self.innerLayout.addWidget(self.changeDirButton)
 
