@@ -53,8 +53,6 @@ class NewThreadInputDialog(QDialog, Ui_NewThreadInputDialog):
 
         if threadId is not None:
             self.storeRequest.emit(str(threadId))
-            self.lineEdit.setText("")
-            self.close()
 
 
 class NewThreadConfirmDialog(QDialog, Ui_NewThreadConfirmDialog):

@@ -80,7 +80,7 @@
     </message>
     <message>
         <location filename="../../layouts/Index.py" line="77"/>
-        <source>newStoreThreadButton</source>
+        <source>newThreadButton</source>
         <translation>Create a new store</translation>
     </message>
 </context>

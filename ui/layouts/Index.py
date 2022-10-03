@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
 from api.thread import LocalThread
 from ui.implements.WorkDirectory import WorkDirectory
 from ui.implements.ThreadList import ThreadList
+from ui.implements.NewThread import NewThreadInputDialog, NewThreadConfirmDialog
 from ui.implements.ThreadInfo import ThreadInfo
 
 
@@ -51,10 +52,13 @@ class Ui_Layout_Index(object):
 
         self.threadListFrameLayout.addWidget(self.threadList)
 
-        self.newStoreThreadButton = QPushButton(widget)
-        self.newStoreThreadButton.setIcon(QIcon(":/icons/add.svg"))
+        self.newThreadButton = QPushButton(widget)
+        self.newThreadButton.setIcon(QIcon(":/icons/add.svg"))
 
-        self.threadListFrameLayout.addWidget(self.newStoreThreadButton)
+        self.newThreadInputDialog = NewThreadInputDialog(widget)
+        self.newThreadConfirmDialog = NewThreadConfirmDialog(widget)
+
+        self.threadListFrameLayout.addWidget(self.newThreadButton)
 
         self.lowerFrameLayout.addWidget(self.threadListFrame)
 
@@ -72,8 +76,8 @@ class Ui_Layout_Index(object):
         self.retranslateUi(widget)
 
     def retranslateUi(self, widget: QWidget = None):
-        self.newStoreThreadButton.setText(
-            QCoreApplication.translate("Layout_Index", "newStoreThreadButton")
+        self.newThreadButton.setText(
+            QCoreApplication.translate("Layout_Index", "newThreadButton")
         )
 
         self.workDirectoryWidget.retranslateUi()
@@ -90,6 +94,9 @@ class Layout_Index(QWidget, Ui_Layout_Index):
 
         self.threadList.threadSelected.connect(self.updateLocalThread)
 
+        self.newThreadButton.clicked.connect(self.newThreadInputDialog.open)
+        self.newThreadInputDialog.storeRequest.connect(self.newThreadStoreRequest)
+
     @Slot(LocalThread)
     def updateLocalThread(self, lt: LocalThread):
         oldWidget = self.threadInfoFrameLayout.itemAt(0).widget()
@@ -100,3 +107,12 @@ class Layout_Index(QWidget, Ui_Layout_Index):
         self.threadInfoFrameLayout.replaceWidget(oldWidget, newWidget)
 
         oldWidget.deleteLater()
+
+    @Slot(str)
+    def newThreadStoreRequest(self, threadId: str):
+        result = self.newThreadConfirmDialog.setId(threadId)
+        if result:
+            self.newThreadInputDialog.close()
+            self.newThreadConfirmDialog.open()
+        else:
+            self.newThreadInputDialog.open()
