@@ -7,5 +7,7 @@
         <file>icons/folder.svg</file>
         <file>icons/folder-closed.svg</file>
         <file>icons/reload.svg</file>
+
+        <file alias="logo.svg">logo/tieba_post_store.svg</file>
     </qresource>
 </RCC>

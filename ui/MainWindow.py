@@ -1,4 +1,5 @@
 from PySide6.QtCore import QCoreApplication, QTranslator
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMainWindow, QTabWidget
 
 from ui import sharedVars
@@ -16,6 +17,7 @@ class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
         self.setWindowTitle("tieba_post_store")
+        self.setWindowIcon(QIcon(":/logo.svg"))
         self.setStatusBar(sharedVars.statusBar)
 
         self.tabWidget = QTabWidget(self)

@@ -64,7 +64,25 @@
        inkscape:color="rgb(0,134,229)" />
   </sodipodi:namedview>
   <defs
-     id="defs2" />
+     id="defs2">
+    <inkscape:path-effect
+       effect="fillet_chamfer"
+       id="path-effect585"
+       is_visible="true"
+       lpeversion="1"
+       nodesatellites_param="F,0,1,1,0,8,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,1,1,0,8,0,1 | F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1"
+       unit="px"
+       method="auto"
+       mode="F"
+       radius="8"
+       chamfer_steps="1"
+       flexible="false"
+       use_knot_distance="true"
+       apply_no_radius="true"
+       apply_with_radius="true"
+       only_selected="true"
+       hide_knots="false" />
+  </defs>
   <g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
@@ -72,7 +90,9 @@
     <path
        id="path23794"
        style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:10;stroke-miterlimit:2"
-       d="M 19 19 L 19 37 L 49 37 L 49.001953 37 L 55 33.537109 L 55 19 L 19 19 z M 61 37 L 50.607422 43 L 50.095703 43 L 38.609375 43 L 19 43 L 19 109 L 109 109 L 109 37 L 61 37 z " />
+       d="m 19,27 v 10 h 30 0.002 L 55,33.537109 V 27 A 8,8 45 0 0 47,19 H 27 a 8,8 135 0 0 -8,8 z M 61,37 50.607422,43 H 50.095703 38.609375 19 v 66 h 90 V 37 Z"
+       inkscape:path-effect="#path-effect585"
+       inkscape:original-d="M 19 19 L 19 37 L 49 37 L 49.001953 37 L 55 33.537109 L 55 19 L 19 19 z M 61 37 L 50.607422 43 L 50.095703 43 L 38.609375 43 L 19 43 L 19 109 L 109 109 L 109 37 L 61 37 z " />
     <path
        style="display:none;fill:#000000;fill-opacity:1;stroke:none;stroke-width:10;stroke-miterlimit:2"
        d="m 19,19 v 90 h 90 V 37 H 55 V 19 Z"
