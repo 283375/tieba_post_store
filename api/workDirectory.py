@@ -11,6 +11,10 @@ def scanDirectory(_rootPath: str):
     logger.info(f"开始扫描 {rootPath}")
     for directory in os.listdir(rootPath):
         directory = os.path.abspath(os.path.join(rootPath, directory))
+
+        if not os.path.isdir(directory):
+            continue
+
         try:
             t = LocalThread(directory)
             logger.info(f"检测到存档目录 {directory}")
