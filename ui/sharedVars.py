@@ -57,7 +57,7 @@ class WorkDirectoryObject(QObject):
         self.scan()
 
     def scan(self):
-        self.scanThread.run()
+        self.scanThread.start()
 
     @Slot(list)
     def threadScanComplete(self, result: list[tuple[str, LocalThread]]):
