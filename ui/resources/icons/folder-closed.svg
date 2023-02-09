@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="128"
+   height="128"
+   viewBox="0 0 128 128"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2 (1:1.2.1+202207142221+cd75a1ee6d)"
+   sodipodi:docname="folder-closed.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#505050"
+     bordercolor="#ffffff"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="1"
+     inkscape:deskcolor="#505050"
+     inkscape:document-units="px"
+     showgrid="false"
+     inkscape:current-layer="layer1"
+     showguides="true">
+    <sodipodi:guide
+       position="19,109"
+       orientation="90,0"
+       id="guide399"
+       inkscape:locked="false" />
+    <sodipodi:guide
+       position="19,19"
+       orientation="0,90"
+       id="guide401"
+       inkscape:locked="false" />
+    <sodipodi:guide
+       position="109,19"
+       orientation="-90,0"
+       id="guide403"
+       inkscape:locked="false" />
+    <sodipodi:guide
+       position="109,109"
+       orientation="0,-90"
+       id="guide405"
+       inkscape:locked="false" />
+    <sodipodi:guide
+       position="19,91"
+       orientation="0,1"
+       id="guide23788"
+       inkscape:locked="false"
+       inkscape:label=""
+       inkscape:color="rgb(0,134,229)" />
+    <sodipodi:guide
+       position="55,109"
+       orientation="-1,0"
+       id="guide23792"
+       inkscape:locked="false"
+       inkscape:label=""
+       inkscape:color="rgb(0,134,229)" />
+  </sodipodi:namedview>
+  <defs
+     id="defs2">
+    <inkscape:path-effect
+       effect="fillet_chamfer"
+       id="path-effect585"
+       is_visible="true"
+       lpeversion="1"
+       nodesatellites_param="F,0,1,1,0,8,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,1,1,0,8,0,1 | F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1 @ F,0,0,1,0,0,0,1"
+       unit="px"
+       method="auto"
+       mode="F"
+       radius="8"
+       chamfer_steps="1"
+       flexible="false"
+       use_knot_distance="true"
+       apply_no_radius="true"
+       apply_with_radius="true"
+       only_selected="true"
+       hide_knots="false" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       id="path23794"
+       style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:10;stroke-miterlimit:2"
+       d="m 19,27 v 10 h 30 0.002 L 55,33.537109 V 27 A 8,8 45 0 0 47,19 H 27 a 8,8 135 0 0 -8,8 z M 61,37 50.607422,43 H 50.095703 38.609375 19 v 66 h 90 V 37 Z"
+       inkscape:path-effect="#path-effect585"
+       inkscape:original-d="M 19 19 L 19 37 L 49 37 L 49.001953 37 L 55 33.537109 L 55 19 L 19 19 z M 61 37 L 50.607422 43 L 50.095703 43 L 38.609375 43 L 19 43 L 19 109 L 109 109 L 109 37 L 61 37 z " />
+    <path
+       style="display:none;fill:#000000;fill-opacity:1;stroke:none;stroke-width:10;stroke-miterlimit:2"
+       d="m 19,19 v 90 h 90 V 37 H 55 V 19 Z"
+       id="path24062" />
+    <path
+       id="rect23964"
+       style="display:none;fill:#ffffff;stroke-width:10;stroke-miterlimit:2"
+       d="M 75.150391,21.902344 49.001953,37 H 49 0.09570312 v 6 H 38.609375 50.095703 50.607422 L 78.150391,27.097656 Z" />
+  </g>
+  <metadata
+     id="metadata268">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <cc:license
+           rdf:resource="http://creativecommons.org/publicdomain/zero/1.0/" />
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/publicdomain/zero/1.0/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+</svg>

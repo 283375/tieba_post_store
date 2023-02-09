@@ -1,29 +1,15 @@
+from ui.base.StoreThread import Ui_StoreThread
+
 import logging
 from requests import ConnectTimeout, ReadTimeout
-from PySide6.QtWidgets import (
-    QProgressBar,
-    QLabel,
-    QPushButton,
-    QGroupBox,
-    QCheckBox,
-    QMessageBox,
-    QWidget,
-    QVBoxLayout,
-    QHBoxLayout,
-    QSizePolicy,
-)
-from PySide6.QtCore import Qt, QThread, Signal, Slot
+from PySide6.QtWidgets import QProgressBar, QMessageBox, QWidget
+from PySide6.QtCore import Qt, QThread, QCoreApplication, Signal, Slot
 
 from api.thread import LocalThread
 from utils.progress import Progress
-from ui._vars import app, signals
+from ui.sharedVars import workDirectoryObject
 
 logger = logging.getLogger("root")
-
-
-class UserTerminate(Exception):
-    def __str__(self):
-        return "用户自行终止。"
 
 
 class StoreThreadThread(QThread):
@@ -47,49 +33,22 @@ class StoreThreadThread(QThread):
             self.actionFinal.emit()
 
 
-class StoreThread(QWidget):
+class StoreThread(QWidget, Ui_StoreThread):
     storeComplete = Signal()
 
     def __init__(self, parent=None):
-        super().__init__(parent)
+        super(StoreThread, self).__init__(parent)
         self.localThread = None
 
-        self.stepProgressBar = QProgressBar()
-        self.detailProgressBar = QProgressBar()
-        self.singleFileProgressBar = QProgressBar()
-        self.stepProgressBar.setAlignment(Qt.AlignVCenter)
-        self.detailProgressBar.setAlignment(Qt.AlignVCenter)
-        self.singleFileProgressBar.setAlignment(Qt.AlignVCenter)
-        self.label = QLabel("")
-        self.labelSizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
-        self.labelSizePolicy.setHorizontalStretch(1)
-        self.label.setSizePolicy(self.labelSizePolicy)
+        self.setupUi(self)
 
-        self.lzOnlyCheckBox = QCheckBox("只看楼主")
-        self.assetsCheckBox = QCheckBox("图像、音视频文件")
-        self.portraitsCheckBox = QCheckBox("用户头像")
-        self.storeOptionsWrapper = QGroupBox("存档选项")
-        self.storeOptionsWrapper.layout = QHBoxLayout(self.storeOptionsWrapper)
-        self.storeOptionsWrapper.layout.addWidget(self.assetsCheckBox)
-        self.storeOptionsWrapper.layout.addWidget(self.portraitsCheckBox)
-        self.storeOptionsWrapper.layout.addWidget(self.lzOnlyCheckBox)
+    @Slot()
+    def on_ST_startButton_clicked(self):
+        self.storeStart()
 
-        self.storeStartButton = QPushButton("存档")
-        self.storeStartButton.clicked.connect(self.storeStart)
-        self.storeSuspendButton = QPushButton("强制中止")
-        self.storeSuspendButton.setEnabled(False)
-        self.storeSuspendButton.clicked.connect(self.storeSuspend)
-        self.lowerWrapper = QHBoxLayout()
-        self.lowerWrapper.addWidget(self.storeSuspendButton)
-        self.lowerWrapper.addWidget(self.storeStartButton)
-        self.lowerWrapper.addWidget(self.label)
-
-        self.layout = QVBoxLayout(self)
-        self.layout.addWidget(self.storeOptionsWrapper)
-        self.layout.addWidget(self.stepProgressBar)
-        self.layout.addWidget(self.detailProgressBar)
-        self.layout.addWidget(self.singleFileProgressBar)
-        self.layout.addLayout(self.lowerWrapper)
+    @Slot()
+    def on_ST_abortButton_clicked(self):
+        self.storeSuspend()
 
     @Slot(LocalThread)
     def setLocalThread(self, t: LocalThread):
@@ -97,7 +56,7 @@ class StoreThread(QWidget):
         self.lzOnlyCheckBox.setChecked(t.storeOptions["lzOnly"])
         self.assetsCheckBox.setChecked(t.storeOptions["assets"])
         self.portraitsCheckBox.setChecked(t.storeOptions["portraits"])
-        self.storeStartButton.setText("更新" if t.isValid else "存档")
+        self.startButton.setText("更新" if t.isValid else "存档")
 
     def __updateProgressBar(self, progressBar: QProgressBar, progress: Progress):
         # self._thread.blockSignals(True)
@@ -110,17 +69,17 @@ class StoreThread(QWidget):
         progressBar.setFormat(progress.format())
         if progressBar.value() != progress.progress:
             progressBar.setValue(progress.progress)
-        app.processEvents()
+        QCoreApplication.instance().processEvents()
         # self._thread.blockSignals(False)
 
     @Slot(Progress)
     def updateProgress(self, p: Progress):
         if p.id in ["LocalThread-Step"]:
-            self.__updateProgressBar(self.stepProgressBar, p)
+            self.__updateProgressBar(self.progressBar1, p)
         elif p.id in ["RemoteThread-Page", "LocalThread-Detail"]:
-            self.__updateProgressBar(self.detailProgressBar, p)
+            self.__updateProgressBar(self.progressBar2, p)
         elif p.id in ["RemoteThread-Post", "LocalThread-DownloadAsset"]:
-            self.__updateProgressBar(self.singleFileProgressBar, p)
+            self.__updateProgressBar(self.progressBar3, p)
         else:
             logger.warning(f"Unknown progress id {p.id}")
 
@@ -143,14 +102,14 @@ class StoreThread(QWidget):
         self.lzOnlyCheckBox.setEnabled(False)
         self.assetsCheckBox.setEnabled(False)
         self.portraitsCheckBox.setEnabled(False)
-        self.storeStartButton.setEnabled(False)
-        self.storeSuspendButton.setEnabled(True)
+        self.startButton.setEnabled(False)
+        self.abortButton.setEnabled(True)
 
         self._thread.setLocalThread(self.localThread)
         self._thread.start()
 
     def storeSuspend(self, *args):
-        self.storeExceptionOccured(UserTerminate())
+        self.storeExceptionOccured(Exception("Terminated by user."))
 
     @Slot(Exception)
     def storeExceptionOccured(self, e: Exception):
@@ -174,14 +133,14 @@ class StoreThread(QWidget):
         self.label.setText("异常终止。" if exception else "存档完成！")
         if self._thread.isRunning():
             self._thread.quit()
-        self.__resetProgressBar(self.stepProgressBar)
-        self.__resetProgressBar(self.detailProgressBar)
-        self.__resetProgressBar(self.singleFileProgressBar)
+        self.__resetProgressBar(self.progressBar1)
+        self.__resetProgressBar(self.progressBar2)
+        self.__resetProgressBar(self.progressBar3)
         self.storeComplete.emit()
-        signals.refreshWorkDirectory.emit()
+        workDirectoryObject.scan()
 
         self.lzOnlyCheckBox.setEnabled(True)
         self.assetsCheckBox.setEnabled(True)
         self.portraitsCheckBox.setEnabled(True)
-        self.storeStartButton.setEnabled(True)
-        self.storeSuspendButton.setEnabled(False)
+        self.startButton.setEnabled(True)
+        self.abortButton.setEnabled(False)

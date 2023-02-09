@@ -1,6 +1,10 @@
 import sys
+import logging
 
-from ui.Entry import *
+from PySide6.QtCore import QDir
+
+from ui.sharedVars import app, workDirectoryObject
+from ui.MainWindow import MainWindow
 
 # fmt: off
 # import time
@@ -10,5 +14,13 @@ from ui.Entry import *
 # fmt: on
 
 if __name__ == "__main__":
+    logger = logging.getLogger("root")
+    logger.setLevel(logging.DEBUG)
+
+    mainWindow = MainWindow()
+
+    workDirectoryObject.setWorkDirectory(QDir.currentPath())
+
+    mainWindow.resize(800, 600)
     mainWindow.show()
     sys.exit(app.exec())

@@ -35,20 +35,19 @@ class ScanWorkDirectoryThread(QThread):
             self.scanResult.emit(results)
 
 
-class WorkDirectoryInstance(QObject):
+class WorkDirectoryObject(QObject):
     dir = QDir.currentPath()
+
     dirChanged = Signal(str)
     dirScanning = Signal(str)
     dirScanResult = Signal(list)
     dirScanValidResult = Signal(list)
 
     def __init__(self):
-        super(WorkDirectoryInstance, self).__init__()
+        super(WorkDirectoryObject, self).__init__()
         self.scanThread = ScanWorkDirectoryThread()
         self.scanThread.scanningDir.connect(lambda dir: self.dirScanning.emit(dir))
         self.scanThread.scanResult.connect(self.threadScanComplete)
-
-        self.setWorkDirectory(QDir.currentPath())
 
     def setWorkDirectory(self, dir: str):
         self.dir = os.path.abspath(dir)
@@ -58,7 +57,7 @@ class WorkDirectoryInstance(QObject):
         self.scan()
 
     def scan(self):
-        self.scanThread.run()
+        self.scanThread.start()
 
     @Slot(list)
     def threadScanComplete(self, result: list[tuple[str, LocalThread]]):
@@ -67,12 +66,5 @@ class WorkDirectoryInstance(QObject):
             [(dir, t) for dir, t in result if t is not None and t.isValid]
         )
 
-workDirectoryInstance = WorkDirectoryInstance()
 
-
-class Signals(QObject):
-    refreshWorkDirectory = Signal()
-
-
-signals = Signals()
-signals.refreshWorkDirectory.connect(workDirectoryInstance.scan)
+workDirectoryObject = WorkDirectoryObject()
