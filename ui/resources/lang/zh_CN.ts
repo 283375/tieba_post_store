@@ -2,6 +2,37 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="zh_CN">
 <context>
+    <name>Comp_DirectoryLineEdit</name>
+    <message>
+        <location filename="../../components/DirectoryLineEdit.py" line="52"/>
+        <source>changeDirButton</source>
+        <translation>选择…</translation>
+    </message>
+    <message>
+        <location filename="../../components/DirectoryLineEdit.py" line="55"/>
+        <source>applyButton</source>
+        <translation>应用</translation>
+    </message>
+    <message>
+        <location filename="../../components/DirectoryLineEdit.py" line="130"/>
+        <source>applyButtonTooltip_Invalid</source>
+        <comment>notDir</comment>
+        <translation>不是目录</translation>
+    </message>
+    <message>
+        <location filename="../../components/DirectoryLineEdit.py" line="135"/>
+        <source>applyButtonTooltip_Invalid</source>
+        <comment>nonExistingDir</comment>
+        <translation>目录不存在</translation>
+    </message>
+    <message>
+        <location filename="../../components/DirectoryLineEdit.py" line="140"/>
+        <source>applyButtonTooltip_Intermediate</source>
+        <comment>dirNotReadable</comment>
+        <translation>目录不可读</translation>
+    </message>
+</context>
+<context>
     <name>Layout_FindInvalid</name>
     <message>
         <location filename="../../layouts/FindInvalid.py" line="71"/>
@@ -74,12 +105,12 @@
 <context>
     <name>Layout_Index</name>
     <message>
-        <location filename="../../layouts/Index.py" line="31"/>
+        <location filename="../../layouts/Index.py" line="32"/>
         <source>emptyPlaceholderLabel</source>
         <translation>未选择存档</translation>
     </message>
     <message>
-        <location filename="../../layouts/Index.py" line="77"/>
+        <location filename="../../layouts/Index.py" line="81"/>
         <source>newThreadButton</source>
         <translation>新存档贴子</translation>
     </message>
@@ -87,48 +118,48 @@
 <context>
     <name>Layout_LogWindow</name>
     <message>
-        <location filename="../../layouts/LogWindow.py" line="176"/>
+        <location filename="../../layouts/LogWindow.py" line="178"/>
         <source>logLimitPrefix</source>
         <translation>显示</translation>
     </message>
     <message>
-        <location filename="../../layouts/LogWindow.py" line="179"/>
+        <location filename="../../layouts/LogWindow.py" line="181"/>
         <source>logLimitSuffix</source>
         <translation>条日志</translation>
     </message>
     <message>
-        <location filename="../../layouts/LogWindow.py" line="182"/>
+        <location filename="../../layouts/LogWindow.py" line="184"/>
         <source>setLogLimitButton</source>
         <translation>重设显示设置</translation>
     </message>
     <message>
-        <location filename="../../layouts/LogWindow.py" line="185"/>
+        <location filename="../../layouts/LogWindow.py" line="187"/>
         <source>exportAllButton</source>
         <translation>导出全部日志</translation>
     </message>
     <message>
-        <location filename="../../layouts/LogWindow.py" line="188"/>
+        <location filename="../../layouts/LogWindow.py" line="190"/>
         <source>exportSelectionButton</source>
         <translation>导出选中日志</translation>
     </message>
     <message>
-        <location filename="../../layouts/LogWindow.py" line="236"/>
+        <location filename="../../layouts/LogWindow.py" line="238"/>
         <source>getSaveFileNameDialogTitle</source>
         <translation>选择导出文件</translation>
     </message>
     <message>
-        <location filename="../../layouts/LogWindow.py" line="262"/>
-        <location filename="../../layouts/LogWindow.py" line="276"/>
+        <location filename="../../layouts/LogWindow.py" line="264"/>
+        <location filename="../../layouts/LogWindow.py" line="278"/>
         <source>exportFailedDialogTitle</source>
         <translation>导不出来</translation>
     </message>
     <message>
-        <location filename="../../layouts/LogWindow.py" line="263"/>
+        <location filename="../../layouts/LogWindow.py" line="265"/>
         <source>exportFailedEmptyList</source>
         <translation>没有日志可导出</translation>
     </message>
     <message>
-        <location filename="../../layouts/LogWindow.py" line="277"/>
+        <location filename="../../layouts/LogWindow.py" line="279"/>
         <source>exportFailedNoSelection</source>
         <translation>没有选中任何日志</translation>
     </message>
@@ -136,17 +167,17 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../../Entry.py" line="38"/>
+        <location filename="../../MainWindow.py" line="43"/>
         <source>tab_Index</source>
         <translation>首页</translation>
     </message>
     <message>
-        <location filename="../../Entry.py" line="41"/>
+        <location filename="../../MainWindow.py" line="46"/>
         <source>tab_FindInvalid</source>
         <translation>查找无效目录/文件</translation>
     </message>
     <message>
-        <location filename="../../Entry.py" line="44"/>
+        <location filename="../../MainWindow.py" line="49"/>
         <source>tab_LogWindow</source>
         <translation>日志</translation>
     </message>
@@ -154,18 +185,18 @@
 <context>
     <name>NewThreadConfirmDialog</name>
     <message>
-        <location filename="../../implements/NewThread.py" line="74"/>
+        <location filename="../../implements/NewThread.py" line="72"/>
         <source>titleField</source>
         <translatorcomment>0: forumName, 1: threadTitle</translatorcomment>
         <translation>【{0}吧】{1}</translation>
     </message>
     <message>
-        <location filename="../../implements/NewThread.py" line="86"/>
+        <location filename="../../implements/NewThread.py" line="84"/>
         <source>invalidThreadDialogTitle</source>
         <translation>贴子无效</translation>
     </message>
     <message>
-        <location filename="../../implements/NewThread.py" line="89"/>
+        <location filename="../../implements/NewThread.py" line="87"/>
         <source>invalidThreadDialogText</source>
         <translatorcomment>0: threadId, 1: e</translatorcomment>
         <translation>ID 为 {0} 的贴子无效。&lt;br&gt;{1}</translation>
@@ -218,6 +249,19 @@
         <source>invalidInputDialogText</source>
         <translatorcomment>0: userInput, 1: e</translatorcomment>
         <translation>无法解析 &quot;{0}&quot;。&lt;br&gt;{1}</translation>
+    </message>
+</context>
+<context>
+    <name>Settings</name>
+    <message>
+        <location filename="../../base/Settings.py" line="44"/>
+        <source>BDUSS_Label</source>
+        <translation>BDUSS</translation>
+    </message>
+    <message>
+        <location filename="../../base/Settings.py" line="47"/>
+        <source>defaultStoreDir_Label</source>
+        <translation>默认存档目录</translation>
     </message>
 </context>
 <context>
@@ -313,12 +357,12 @@
 <context>
     <name>WorkDirectory</name>
     <message>
-        <location filename="../../base/WorkDirectory.py" line="48"/>
+        <location filename="../../base/WorkDirectory.py" line="50"/>
         <source>title</source>
         <translation>工作目录</translation>
     </message>
     <message>
-        <location filename="../../base/WorkDirectory.py" line="51"/>
+        <location filename="../../base/WorkDirectory.py" line="53"/>
         <source>changeDirButton</source>
         <translation>更改</translation>
     </message>

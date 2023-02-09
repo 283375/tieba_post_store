@@ -2,6 +2,37 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="en_US">
 <context>
+    <name>Comp_DirectoryLineEdit</name>
+    <message>
+        <location filename="../../components/DirectoryLineEdit.py" line="52"/>
+        <source>changeDirButton</source>
+        <translation>Select...</translation>
+    </message>
+    <message>
+        <location filename="../../components/DirectoryLineEdit.py" line="55"/>
+        <source>applyButton</source>
+        <translation>Apply</translation>
+    </message>
+    <message>
+        <location filename="../../components/DirectoryLineEdit.py" line="130"/>
+        <source>applyButtonTooltip_Invalid</source>
+        <comment>notDir</comment>
+        <translation>Not a directory</translation>
+    </message>
+    <message>
+        <location filename="../../components/DirectoryLineEdit.py" line="135"/>
+        <source>applyButtonTooltip_Invalid</source>
+        <comment>nonExistingDir</comment>
+        <translation>Not found</translation>
+    </message>
+    <message>
+        <location filename="../../components/DirectoryLineEdit.py" line="140"/>
+        <source>applyButtonTooltip_Intermediate</source>
+        <comment>dirNotReadable</comment>
+        <translation>Not Readable</translation>
+    </message>
+</context>
+<context>
     <name>Layout_FindInvalid</name>
     <message>
         <location filename="../../layouts/FindInvalid.py" line="71"/>
@@ -74,12 +105,12 @@
 <context>
     <name>Layout_Index</name>
     <message>
-        <location filename="../../layouts/Index.py" line="31"/>
+        <location filename="../../layouts/Index.py" line="32"/>
         <source>emptyPlaceholderLabel</source>
         <translation>No store selected</translation>
     </message>
     <message>
-        <location filename="../../layouts/Index.py" line="77"/>
+        <location filename="../../layouts/Index.py" line="81"/>
         <source>newThreadButton</source>
         <translation>Create a new store</translation>
     </message>
@@ -87,48 +118,48 @@
 <context>
     <name>Layout_LogWindow</name>
     <message>
-        <location filename="../../layouts/LogWindow.py" line="176"/>
+        <location filename="../../layouts/LogWindow.py" line="178"/>
         <source>logLimitPrefix</source>
         <translation>Display</translation>
     </message>
     <message>
-        <location filename="../../layouts/LogWindow.py" line="179"/>
+        <location filename="../../layouts/LogWindow.py" line="181"/>
         <source>logLimitSuffix</source>
         <translation>log entries</translation>
     </message>
     <message>
-        <location filename="../../layouts/LogWindow.py" line="182"/>
+        <location filename="../../layouts/LogWindow.py" line="184"/>
         <source>setLogLimitButton</source>
         <translation>Update display limit</translation>
     </message>
     <message>
-        <location filename="../../layouts/LogWindow.py" line="185"/>
+        <location filename="../../layouts/LogWindow.py" line="187"/>
         <source>exportAllButton</source>
         <translation>Export all</translation>
     </message>
     <message>
-        <location filename="../../layouts/LogWindow.py" line="188"/>
+        <location filename="../../layouts/LogWindow.py" line="190"/>
         <source>exportSelectionButton</source>
         <translation>Export selection</translation>
     </message>
     <message>
-        <location filename="../../layouts/LogWindow.py" line="236"/>
+        <location filename="../../layouts/LogWindow.py" line="238"/>
         <source>getSaveFileNameDialogTitle</source>
         <translation>Select export file</translation>
     </message>
     <message>
-        <location filename="../../layouts/LogWindow.py" line="262"/>
-        <location filename="../../layouts/LogWindow.py" line="276"/>
+        <location filename="../../layouts/LogWindow.py" line="264"/>
+        <location filename="../../layouts/LogWindow.py" line="278"/>
         <source>exportFailedDialogTitle</source>
         <translation>Cannot export</translation>
     </message>
     <message>
-        <location filename="../../layouts/LogWindow.py" line="263"/>
+        <location filename="../../layouts/LogWindow.py" line="265"/>
         <source>exportFailedEmptyList</source>
         <translation>Empty log list</translation>
     </message>
     <message>
-        <location filename="../../layouts/LogWindow.py" line="277"/>
+        <location filename="../../layouts/LogWindow.py" line="279"/>
         <source>exportFailedNoSelection</source>
         <translation>Selection is empty</translation>
     </message>
@@ -136,17 +167,17 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../../Entry.py" line="38"/>
+        <location filename="../../MainWindow.py" line="43"/>
         <source>tab_Index</source>
         <translation>Index</translation>
     </message>
     <message>
-        <location filename="../../Entry.py" line="41"/>
+        <location filename="../../MainWindow.py" line="46"/>
         <source>tab_FindInvalid</source>
         <translation>Find Invalid Files</translation>
     </message>
     <message>
-        <location filename="../../Entry.py" line="44"/>
+        <location filename="../../MainWindow.py" line="49"/>
         <source>tab_LogWindow</source>
         <translation>Logs</translation>
     </message>
@@ -154,18 +185,18 @@
 <context>
     <name>NewThreadConfirmDialog</name>
     <message>
-        <location filename="../../implements/NewThread.py" line="74"/>
+        <location filename="../../implements/NewThread.py" line="72"/>
         <source>titleField</source>
         <translatorcomment>0: forumName, 1: threadTitle</translatorcomment>
         <translation>[{0}] {1}</translation>
     </message>
     <message>
-        <location filename="../../implements/NewThread.py" line="86"/>
+        <location filename="../../implements/NewThread.py" line="84"/>
         <source>invalidThreadDialogTitle</source>
         <translation>Invalid thread</translation>
     </message>
     <message>
-        <location filename="../../implements/NewThread.py" line="89"/>
+        <location filename="../../implements/NewThread.py" line="87"/>
         <source>invalidThreadDialogText</source>
         <translatorcomment>0: threadId, 1: e</translatorcomment>
         <translation>Thread {0} is invalid.&lt;br&gt;{1}</translation>
@@ -218,6 +249,19 @@
         <source>invalidInputDialogText</source>
         <translatorcomment>0: userInput, 1: e</translatorcomment>
         <translation>Cannot parse input &quot;{0}&quot;.&lt;br&gt;{1}</translation>
+    </message>
+</context>
+<context>
+    <name>Settings</name>
+    <message>
+        <location filename="../../base/Settings.py" line="44"/>
+        <source>BDUSS_Label</source>
+        <translation>BDUSS</translation>
+    </message>
+    <message>
+        <location filename="../../base/Settings.py" line="47"/>
+        <source>defaultStoreDir_Label</source>
+        <translation>Default store directory</translation>
     </message>
 </context>
 <context>
@@ -311,12 +355,12 @@
 <context>
     <name>WorkDirectory</name>
     <message>
-        <location filename="../../base/WorkDirectory.py" line="48"/>
+        <location filename="../../base/WorkDirectory.py" line="50"/>
         <source>title</source>
         <translation>Work Directory</translation>
     </message>
     <message>
-        <location filename="../../base/WorkDirectory.py" line="51"/>
+        <location filename="../../base/WorkDirectory.py" line="53"/>
         <source>changeDirButton</source>
         <translation>Change</translation>
     </message>

@@ -103,17 +103,17 @@ class LightRemoteThread:
     def getThreadInfo(self):
         base = self.origData["thread"]
         return {
-            "id": base["id"],
-            "title": base["thread_info"]["title"],
-            "createTime": base["thread_info"]["create_time"],
+            "id": str(base["id"]),
+            "title": base["origin_thread_info"]["title"],
+            "createTime": base["create_time"],
             "author": {
                 "id": base["author"]["id"],
                 "origName": base["author"]["name"],
                 "displayName": base["author"]["name_show"],
             },
             "forum": {
-                "id": base["thread_info"]["forum_id"],
-                "name": base["thread_info"]["forum_name"],
+                "id": base["origin_thread_info"]["fid"],
+                "name": base["origin_thread_info"]["fname"],
             },
         }
 
@@ -225,17 +225,17 @@ class RemoteThread(LightRemoteThread):
     def getThreadInfo(self):
         base = self.origData["page_1"]["thread"]
         return {
-            "id": base["id"],
-            "title": base["thread_info"]["title"],
-            "createTime": base["thread_info"]["create_time"],
+            "id": str(base["id"]),
+            "title": base["origin_thread_info"]["title"],
+            "createTime": base["create_time"],
             "author": {
                 "id": base["author"]["id"],
                 "origName": base["author"]["name"],
                 "displayName": base["author"]["name_show"],
             },
             "forum": {
-                "id": base["thread_info"]["forum_id"],
-                "name": base["thread_info"]["forum_name"],
+                "id": base["origin_thread_info"]["fid"],
+                "name": base["origin_thread_info"]["fname"],
             },
         }
 

@@ -4,6 +4,7 @@ from PySide6.QtWidgets import QMainWindow, QTabWidget
 
 from ui import sharedVars
 from ui.layouts import Index, FindInvalid, LogWindow
+from ui.implements import Settings
 from ui.resources import main_qrc
 
 app = sharedVars.app
@@ -22,13 +23,15 @@ class MainWindow(QMainWindow):
 
         self.tabWidget = QTabWidget(self)
 
-        self.layout_Index = Index.Layout_Index(self.tabWidget)
-        self.layout_FindInvalid = FindInvalid.Layout_FindInvalid(self.tabWidget)
-        self.layout_LogWindow = LogWindow.Layout_LogWindow(self.tabWidget)
+        self.tab_Layout_Index = Index.Layout_Index(self.tabWidget)
+        self.tab_Layout_FindInvalid = FindInvalid.Layout_FindInvalid(self.tabWidget)
+        self.tab_Layout_LogWindow = LogWindow.Layout_LogWindow(self.tabWidget)
+        self.tab_Settings = Settings.Settings(self.tabWidget)
 
-        self.tabWidget.addTab(self.layout_Index, "Index")
-        self.tabWidget.addTab(self.layout_FindInvalid, "Find Invalid Files")
-        self.tabWidget.addTab(self.layout_LogWindow, "Log")
+        self.tabWidget.addTab(self.tab_Layout_Index, "Index")
+        self.tabWidget.addTab(self.tab_Layout_FindInvalid, "Find Invalid Files")
+        self.tabWidget.addTab(self.tab_Layout_LogWindow, "Log")
+        self.tabWidget.addTab(self.tab_Settings, "Settings")
         
         self.setCentralWidget(self.tabWidget)
 
@@ -45,6 +48,6 @@ class MainWindow(QMainWindow):
             2, QCoreApplication.translate("MainWindow", "tab_LogWindow")
         )
 
-        self.layout_Index.retranslateUi()
-        self.layout_FindInvalid.retranslateUi()
-        self.layout_LogWindow.retranslateUi()
+        self.tab_Layout_Index.retranslateUi()
+        self.tab_Layout_FindInvalid.retranslateUi()
+        self.tab_Layout_LogWindow.retranslateUi()

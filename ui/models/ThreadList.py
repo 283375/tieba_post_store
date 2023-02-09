@@ -5,14 +5,14 @@ from api.thread import LocalThread
 
 # Delegate imports
 from PySide6.QtCore import Qt, QPoint
-from PySide6.QtGui import QColor, QBrush, QPen, QFont, QFontMetrics
-from PySide6.QtWidgets import QStyle, QStyledItemDelegate
+from PySide6.QtGui import QColor, QBrush, QPen, QFont, QFontMetrics, QPainter
+from PySide6.QtWidgets import QStyle, QStyledItemDelegate, QStyleOptionViewItem
 
 from api.thread import getLocalThreadInfo
 
 
 class Model(QAbstractListModel):
-    LocalThreadRole = 20
+    LocalThreadRole = Qt.UserRole + 1
 
     def __init__(self, parent=None):
         super(Model, self).__init__(parent)
@@ -73,7 +73,9 @@ class Delegate(QStyledItemDelegate):
             (storeInfo, self.StoreInfoQFont),
         )
 
-    def paint(self, painter, option, index) -> None:
+    def paint(
+        self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex
+    ) -> None:
         # Background painting
         painter.save()
         painter.setPen(Qt.NoPen)  # No border

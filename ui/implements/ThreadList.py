@@ -8,6 +8,9 @@ from ui.sharedVars import statusBar, workDirectoryObject
 from api.thread import LocalThread
 
 
+import snoop
+
+
 class ThreadList(QListView):
     threadSelected = Signal(LocalThread)
 
@@ -17,6 +20,8 @@ class ThreadList(QListView):
         self.setSelectionRectVisible(True)
         self.setDragEnabled(False)
         self.setAcceptDrops(False)
+        self.setLayoutMode(QListView.Batched)
+        self.setUniformItemSizes(True)
 
         self._model = Model()
         self.setModel(self._model)

@@ -4,6 +4,7 @@
         <file>lang/en_US.qm</file>
 
         <file>icons/add.svg</file>
+        <file>icons/check.svg</file>
         <file>icons/folder.svg</file>
         <file>icons/folder-closed.svg</file>
         <file>icons/reload.svg</file>
